@@ -1,0 +1,15 @@
+{
+  "batches": [
+    {
+      "ts": "2026-08-25T21:49:00+08:00",
+      "values": {
+        "ktown4u_echo": { "set2cd": 2338, "photobook": 873, "nfc": 1048, "vinyl": 484 },
+        "ktown4u_stardust": { "set2cd": 817, "vinyl": 154, "nfc": 396, "photobook": 289 },
+        "yetimall_echo": { "main": 334 },
+        "yetimall_stardust": { "main": 352 },
+        "namilmarket_main": { "main": 5 },
+        "ktown4u_jp": { "photobook": 17, "nfc": 31, "vinyl": 10 }
+      }
+    }
+  ]
+}
