@@ -35,7 +35,7 @@ const CHANNELS = [
   },
   {
     id: "yetimall_echo",
-    url: "https://m.yetimall.store/h5/#/goods?gid=32426
+    url: "https://m.yetimall.store/h5/#/goods?gid=32426",
     itemIds: ["main"],
     parse: parseYetimall,
     retry: true,
@@ -55,7 +55,7 @@ const CHANNELS = [
   },
   {
     id: "ktown4u_jp",
-    url: "https://jp.ktown4u.com/eventinfo?eve_no=42960
+    url: "https://jp.ktown4u.com/eventinfo?eve_no=42960704&biz_no=783",
     itemIds: ["photobook", "nfc", "vinyl"],
     parse: parseKtown4uJapan,
     countPattern: /注文履歴/,
@@ -63,29 +63,29 @@ const CHANNELS = [
   },
 ];
 
-// Ktown4u China: item cards read "...\nRMB123.00\n售销der,
+// Ktown4u China: item cards read "...\nRMB123.00\n售销记录 1,234" in document order,
 // matching each channel's declared itemIds order (2CD/Vinyl/NFC/Photobook order
-// differs between the two China group-buy pages, hence).
+// differs between the two China group-buy pages, hence itemIds per channel above).
 function parseKtown4uChina(text, itemIds) {
-  const matches = [...text.matchAll(/售销记录\s*([\d,]+m[1].replace(/,/g, ""), 10));
+  const matches = [...text.matchAll(/售销记录\s*([\d,]+)/g)].map((m) => parseInt(m[1].replace(/,/g, ""), 10));
   return matchInOrder(itemIds, matches);
 }
 
 // Ktown4u Japan: same idea, label is "注文履歴".
 function parseKtown4uJapan(text, itemIds) {
-  const matches = [...text.matchAll(/注文履歴\s*([\d,]+m[1].replace(/,/g, ""), 10));
+  const matches = [...text.matchAll(/注文履歴\s*([\d,]+)/g)].map((m) => parseInt(m[1].replace(/,/g, ""), 10));
   return matchInOrder(itemIds, matches);
 }
 
-// Yetimall: single "已售NNN件" counter. The page is kn
+// Yetimall: single "已售NNN件" counter. The page is known to be slow and often
 // shows a "已售0件" placeholder before the real number loads — caller retries.
 function parseYetimall(text, itemIds) {
   const m = text.match(/已售\s*([\d,]+)\s*件/);
-  const n = m ? parseInt(m[1].replace(/,/g, ""), 10) :
+  const n = m ? parseInt(m[1].replace(/,/g, ""), 10) : null;
   return { [itemIds[0]]: n && n > 0 ? n : null };
 }
 
-// Namilmarket: "已 售： N" (traditional server-renderey).
+// Namilmarket: "已 售： N" (traditional server-rendered page, loads fast/reliably).
 function parseNamilmarket(text, itemIds) {
   const m = text.match(/已\s*售\s*[:：]\s*([\d,]+)/);
   const n = m ? parseInt(m[1].replace(/,/g, ""), 10) : null;
@@ -101,21 +101,21 @@ function matchInOrder(itemIds, numbers) {
 async function scrapeChannel(browser, channel) {
   const maxAttempts = channel.retry ? 6 : 2;
   let lastResult = null;
-  for (let attempt = 1; attempt <= maxAttempts; attempt
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     // locale matters: without it these sites can render an English build where the
-    // Chinese "售销记录"/"已售...件" labels we match o
+    // Chinese "售销记录"/"已售...件" labels we match on never appear
     const page = await browser.newPage({
       viewport: { width: 1280, height: 900 },
       locale: "zh-CN",
-      userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS .36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36",
+      userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36",
     });
     try {
       // networkidle never resolves on these pages (continuous analytics beacons),
-      // so we wait for DOM content only, then poll for.
+      // so we wait for DOM content only, then poll for the actual data ourselves.
       await page.goto(channel.url, { waitUntil: "domcontentloaded", timeout: 20000 });
       if (channel.scrollToLoad) {
         // ktown4u lazy-loads its sale-count widget via IntersectionObserver as the
-        // goods list scrolls into view — step down incping,
+        // goods list scrolls into view — step down incrementally rather than jumping,
         // since a single scrollTo(bottom) doesn't reliably fire the observer
         for (let y = 250; y <= 2500; y += 250) {
           await page.evaluate((yy) => window.scrollTo(0, yy), y);
@@ -131,21 +131,21 @@ async function scrapeChannel(browser, channel) {
       }
       await page.waitForTimeout(1500);
       const text = await page.evaluate(() => document.body.innerText);
-      const result = channel.parse(text, channel.itemId
+      const result = channel.parse(text, channel.itemIds);
       const values = Object.values(result);
-      const complete = values.length > 0 && values.ever== undefined);
+      const complete = values.length > 0 && values.every((v) => v !== null && v !== undefined);
       lastResult = result;
       if (complete) {
         console.log(`  [ok] ${channel.id} (attempt ${attempt}):`, JSON.stringify(result));
         return result;
       }
-      console.log(`  [retry] ${channel.id} attempt ${atstringify(result));
+      console.log(`  [retry] ${channel.id} attempt ${attempt} incomplete:`, JSON.stringify(result));
       // diagnostic: show what the page actually contains when parsing comes up empty,
-      // so failures can be told apart (rate-limit noti markup vs. blank page)
+      // so failures can be told apart (rate-limit notice vs. genuinely different markup vs. blank page)
       const flatText = text.replace(/\s+/g, " ").trim();
-      console.log(`  [diag] ${channel.id} body snippet:}"`);
+      console.log(`  [diag] ${channel.id} body snippet: "${flatText.slice(0, 200)}"`);
       if (/访问限制|异常流量|检测到.*可疑|blocked|forbidden/i.test(text)) {
-        console.log(`  [diag] ${channel.id} looks like `);
+        console.log(`  [diag] ${channel.id} looks like an access-restriction page`);
       }
     } catch (err) {
       console.log(`  [error] ${channel.id} attempt ${attempt}: ${err.message}`);
@@ -165,13 +165,13 @@ async function main() {
   try {
     for (const channel of CHANNELS) {
       console.log(`Scraping ${channel.id} ...`);
-      const result = await scrapeChannel(browser, chann
+      const result = await scrapeChannel(browser, channel);
       const ok = result && Object.values(result).every((v) => v !== null && v !== undefined);
       if (ok) {
         values[channel.id] = result;
       } else {
         failed.push(channel.id);
-        console.log(`  [skip] ${channel.id} — no compleed from this batch`);
+        console.log(`  [skip] ${channel.id} — no complete reading this run, omitted from this batch`);
       }
     }
   } finally {
@@ -179,16 +179,16 @@ async function main() {
   }
 
   if (Object.keys(values).length === 0) {
-    console.error("No channel produced a usable readingbatch.");
+    console.error("No channel produced a usable reading this run — not writing a batch.");
     process.exit(1);
   }
 
-  const data = fs.existsSync(DATA_PATH) ? JSON.parse(fsutf8")) : { batches: [] };
+  const data = fs.existsSync(DATA_PATH) ? JSON.parse(fs.readFileSync(DATA_PATH, "utf8")) : { batches: [] };
   data.batches.push({ ts: new Date().toISOString(), values });
-  fs.writeFileSync(DATA_PATH, JSON.stringify(data, null
+  fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2) + "\n");
 
-  console.log(`\nWrote batch with ${Object.keys(values)} channels.`);
+  console.log(`\nWrote batch with ${Object.keys(values).length}/${CHANNELS.length} channels.`);
   if (failed.length) console.log(`Channels missing this run: ${failed.join(", ")}`);
 }
 
-main().catch((err) => { console.error(err); process.exi
+main().catch((err) => { console.error(err); process.exit(1); });
