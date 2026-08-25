@@ -24,6 +24,7 @@ const CHANNELS = [
     parse: parseKtown4uChina,
     countPattern: /售销记录/,
     scrollToLoad: true,
+    watchGraphql: true,
   },
   {
     id: "ktown4u_stardust",
@@ -32,6 +33,7 @@ const CHANNELS = [
     parse: parseKtown4uChina,
     countPattern: /售销记录/,
     scrollToLoad: true,
+    watchGraphql: true,
   },
   {
     id: "yetimall_echo",
@@ -60,6 +62,7 @@ const CHANNELS = [
     parse: parseKtown4uJapan,
     countPattern: /注文履歴/,
     scrollToLoad: true,
+    watchGraphql: true,
   },
 ];
 
@@ -109,6 +112,17 @@ async function scrapeChannel(browser, channel) {
       locale: "zh-CN",
       userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36",
     });
+    // diagnostic: track every request to ktown4u's own GraphQL API for this page load,
+    // so we can tell "frontend never even asked for the data" apart from "asked and got refused"
+    const apiCalls = [];
+    if (channel.watchGraphql) {
+      page.on("response", async (res) => {
+        if (!res.url().includes("graphql")) return;
+        let bodySnippet = "";
+        try { bodySnippet = (await res.text()).replace(/\s+/g, " ").slice(0, 150); } catch (e) { /* ignore */ }
+        apiCalls.push({ url: res.url().split("?")[0], status: res.status(), body: bodySnippet });
+      });
+    }
     try {
       // networkidle never resolves on these pages (continuous analytics beacons),
       // so we wait for DOM content only, then poll for the actual data ourselves.
@@ -129,7 +143,7 @@ async function scrapeChannel(browser, channel) {
           { timeout: 12000 }
         ).catch(() => {});
       }
-      await page.waitForTimeout(1500);
+      await page.waitForTimeout(2000);
       const text = await page.evaluate(() => document.body.innerText);
       const result = channel.parse(text, channel.itemIds);
       const values = Object.values(result);
@@ -143,9 +157,13 @@ async function scrapeChannel(browser, channel) {
       // diagnostic: show what the page actually contains when parsing comes up empty,
       // so failures can be told apart (rate-limit notice vs. genuinely different markup vs. blank page)
       const flatText = text.replace(/\s+/g, " ").trim();
-      console.log(`  [diag] ${channel.id} body snippet: "${flatText.slice(0, 200)}"`);
+      console.log(`  [diag] ${channel.id} body length: ${text.length}, snippet: "${flatText.slice(0, 200)}"`);
       if (/访问限制|异常流量|检测到.*可疑|blocked|forbidden/i.test(text)) {
         console.log(`  [diag] ${channel.id} looks like an access-restriction page`);
+      }
+      if (channel.watchGraphql) {
+        console.log(`  [diag] ${channel.id} graphql calls seen: ${apiCalls.length}`);
+        apiCalls.forEach((c, i) => console.log(`    #${i + 1} ${c.status} ${c.url} :: ${c.body}`));
       }
     } catch (err) {
       console.log(`  [error] ${channel.id} attempt ${attempt}: ${err.message}`);
