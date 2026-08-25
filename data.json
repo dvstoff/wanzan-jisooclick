@@ -72,6 +72,20 @@
           "main": 8
         }
       }
+    },
+    {
+      "ts": "2026-08-25T17:28:53.821Z",
+      "values": {
+        "yetimall_echo": {
+          "main": 652
+        },
+        "yetimall_stardust": {
+          "main": 494
+        },
+        "namilmarket_main": {
+          "main": 8
+        }
+      }
     }
   ]
 }
