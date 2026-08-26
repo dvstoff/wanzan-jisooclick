@@ -585,6 +585,23 @@
           "main": 10
         }
       }
+    },
+    {
+      "ts": "2026-08-26T11:59:05.205Z",
+      "values": {
+        "ktown4u_echo": {
+          "set2cd": 5844,
+          "photobook": 2585,
+          "nfc": 4247,
+          "vinyl": 946
+        },
+        "ktown4u_stardust": {
+          "set2cd": 1683,
+          "vinyl": 289,
+          "nfc": 1102,
+          "photobook": 751
+        }
+      }
     }
   ]
 }
