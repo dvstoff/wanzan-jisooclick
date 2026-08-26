@@ -42,12 +42,11 @@ jobs:
         run: |
           git config user.name "wanzan-sales-bot"
           git config user.email "actions@users.noreply.github.com"
-          git fetch origin main
-          git rebase origin/main
           if git diff --quiet -- data.json; then
             echo "No changes to data.json this run."
           else
             git add data.json
             git commit -m "chore: hourly sales snapshot $(date -u +'%Y-%m-%d %H:%M UTC')"
+            git pull --rebase --autostash origin main
             git push
           fi
