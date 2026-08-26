@@ -2,9 +2,11 @@ name: Hourly sales scrape
 
 on:
   schedule:
-    # GitHub's scheduler runs in UTC and can lag a few minutes under load —
-    # treat "on the hour" as "within a few minutes of the hour", not exact.
-    - cron: "0 * * * *"
+    # Scheduled at :55 rather than the top of the hour on purpose: every cron job on
+    # GitHub piles up at :00, which is exactly when scheduled runs get delayed or
+    # dropped. :55 dodges that jam — and since a run itself takes ~8-9 minutes, it
+    # lands right around the new hour, so the data still reads as "fresh this hour".
+    - cron: "55 * * * *"
   workflow_dispatch: {} # lets you trigger a run manually from the Actions tab
 
 permissions:
