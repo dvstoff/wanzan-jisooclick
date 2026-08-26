@@ -4,7 +4,8 @@
   "private": true,
   "type": "commonjs",
   "scripts": {
-    "scrape": "node scripts/scrape.js"
+    "scrape": "node scripts/scrape.js",
+    "scrape:ktown4u": "node scripts/scrape.js --only=ktown4u"
   },
   "dependencies": {
     "playwright": "^1.48.0"

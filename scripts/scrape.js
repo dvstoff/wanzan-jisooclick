@@ -19,24 +19,29 @@ const DATA_PATH = path.join(__dirname, "..", "data.json");
 const CHANNELS = [
   {
     id: "ktown4u_echo",
+    platform: "ktown4u",
     url: "https://cn.ktown4u.com/eventinfo?eve_no=44509156&biz_no=599",
     itemIds: ["set2cd", "photobook", "nfc", "vinyl"],
     parse: parseKtown4uChina,
     countPattern: /售销记录/,
     scrollToLoad: true,
     watchGraphql: true,
+    retry: true,
   },
   {
     id: "ktown4u_stardust",
+    platform: "ktown4u",
     url: "https://cn.ktown4u.com/eventinfo?eve_no=44509161&biz_no=599",
     itemIds: ["set2cd", "vinyl", "nfc", "photobook"],
     parse: parseKtown4uChina,
     countPattern: /售销记录/,
     scrollToLoad: true,
     watchGraphql: true,
+    retry: true,
   },
   {
     id: "yetimall_echo",
+    platform: "other",
     url: "https://m.yetimall.store/h5/#/goods?gid=32426",
     itemIds: ["main"],
     parse: parseYetimall,
@@ -44,6 +49,7 @@ const CHANNELS = [
   },
   {
     id: "yetimall_stardust",
+    platform: "other",
     url: "https://m.yetimall.store/h5/#/goods?gid=32425",
     itemIds: ["main"],
     parse: parseYetimall,
@@ -51,20 +57,29 @@ const CHANNELS = [
   },
   {
     id: "namilmarket_main",
+    platform: "other",
     url: "https://www.namilmarket.com/2608jslz0825-2",
     itemIds: ["main"],
     parse: parseNamilmarket,
   },
   {
     id: "ktown4u_jp",
+    platform: "ktown4u",
     url: "https://jp.ktown4u.com/eventinfo?eve_no=42960704&biz_no=783",
     itemIds: ["photobook", "nfc", "vinyl"],
     parse: parseKtown4uJapan,
     countPattern: /注文履歴/,
     scrollToLoad: true,
     watchGraphql: true,
+    retry: true,
   },
 ];
+
+// CLI filter: `node scripts/scrape.js --only=ktown4u` runs just those channels.
+// Lets ktown4u run on its own tighter schedule without touching the reliable
+// hourly run for the other channels.
+const onlyArg = process.argv.find((a) => a.startsWith("--only="));
+const ONLY_PLATFORM = onlyArg ? onlyArg.split("=")[1] : null;
 
 // Ktown4u China: item cards read "...\nRMB123.00\n售销记录 1,234" in document order,
 // matching each channel's declared itemIds order (2CD/Vinyl/NFC/Photobook order
@@ -95,6 +110,8 @@ function parseNamilmarket(text, itemIds) {
   return { [itemIds[0]]: n };
 }
 
+function rand(min, max) { return Math.floor(min + Math.random() * (max - min)); }
+
 function matchInOrder(itemIds, numbers) {
   const out = {};
   itemIds.forEach((id, i) => { out[id] = Number.isFinite(numbers[i]) ? numbers[i] : null; });
@@ -112,15 +129,24 @@ async function scrapeChannel(browser, channel) {
       locale: "zh-CN",
       userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36",
     });
-    // diagnostic: track every request to ktown4u's own GraphQL API for this page load,
-    // so we can tell "frontend never even asked for the data" apart from "asked and got refused"
+    // Read straight from ktown4u's own API response instead of scraped DOM text —
+    // more robust than text-matching, since the number can arrive before the text
+    // label finishes re-rendering (seen on the Japan page: the API call succeeds
+    // but "注文履歴" hadn't painted yet when we checked innerText).
     const apiCalls = [];
+    const salesFromApi = [];
     if (channel.watchGraphql) {
       page.on("response", async (res) => {
         if (!res.url().includes("graphql")) return;
+        let json = null;
         let bodySnippet = "";
-        try { bodySnippet = (await res.text()).replace(/\s+/g, " ").slice(0, 150); } catch (e) { /* ignore */ }
+        try {
+          json = await res.json();
+          bodySnippet = JSON.stringify(json).replace(/\s+/g, " ").slice(0, 150);
+        } catch (e) { /* non-JSON or already consumed */ }
         apiCalls.push({ url: res.url().split("?")[0], status: res.status(), body: bodySnippet });
+        const sales = json && json.data && json.data.fanClubProductSales && json.data.fanClubProductSales.sales;
+        if (Number.isFinite(sales)) salesFromApi.push(sales);
       });
     }
     try {
@@ -128,23 +154,52 @@ async function scrapeChannel(browser, channel) {
       // so we wait for DOM content only, then poll for the actual data ourselves.
       await page.goto(channel.url, { waitUntil: "domcontentloaded", timeout: 20000 });
       if (channel.scrollToLoad) {
-        // ktown4u lazy-loads its sale-count widget via IntersectionObserver as the
-        // goods list scrolls into view — step down incrementally rather than jumping,
-        // since a single scrollTo(bottom) doesn't reliably fire the observer
-        for (let y = 250; y <= 2500; y += 250) {
-          await page.evaluate((yy) => window.scrollTo(0, yy), y);
-          await page.waitForTimeout(300);
+        // Two-stage load: fanClubEventProductsV2 fetches the product list first (fast),
+        // then each rendered product CARD independently fetches its own sale count
+        // (fanClubProductSales) once *that specific card* scrolls into view. Scrolling
+        // before the cards exist in the DOM triggers nothing, so wait for a real price
+        // ("RMB123.00") to appear — proof the cards have mounted — before scrolling.
+        await page.waitForFunction(
+          () => /RMB\s*[\d.]+/.test(document.body.innerText),
+          { timeout: 10000 }
+        ).catch(() => {});
+        // move the mouse across the page first — a page that's only ever been
+        // scrolled programmatically, never pointed at, is itself a bot tell
+        await page.mouse.move(200 + rand(0, 100), 200 + rand(0, 100));
+        await page.mouse.move(600 + rand(0, 200), 400 + rand(0, 150), { steps: rand(8, 20) });
+        for (let y = 250; y <= 3000; y += rand(150, 260)) {
+          await page.mouse.wheel(0, rand(140, 260));
+          await page.waitForTimeout(rand(220, 480));
+        }
+        // settle near the bottom, then sweep back up slowly — some cards' observers
+        // only fire on the way past a second time
+        await page.waitForTimeout(rand(400, 900));
+        for (let i = 0; i < 12; i++) {
+          await page.mouse.wheel(0, -rand(180, 320));
+          await page.waitForTimeout(rand(180, 400));
+        }
+      }
+      if (channel.watchGraphql) {
+        // the exact call that carries sale counts, confirmed by manual inspection earlier
+        await page.waitForResponse((res) => res.url().includes("operationName=fanClubProductSales"), { timeout: 15000 }).catch(() => {});
+        // one call per product card — give the rest a moment to land too
+        for (let i = 0; i < 10 && salesFromApi.length < channel.itemIds.length; i++) {
+          await page.waitForTimeout(400);
         }
       }
       if (channel.countPattern) {
         await page.waitForFunction(
           (src) => new RegExp(src).test(document.body.innerText),
           channel.countPattern.source,
-          { timeout: 12000 }
+          { timeout: 8000 }
         ).catch(() => {});
       }
       await page.waitForTimeout(2000);
       const text = await page.evaluate(() => document.body.innerText);
+      // DOM text order was verified correct across repeated runs (NFC always > Vinyl,
+      // as expected). The API responses arrive in non-deterministic order per request —
+      // matching them by arrival order silently swapped NFC/Vinyl between two otherwise-
+      // identical runs, so API values are diagnostic-only here, never authoritative.
       const result = channel.parse(text, channel.itemIds);
       const values = Object.values(result);
       const complete = values.length > 0 && values.every((v) => v !== null && v !== undefined);
@@ -162,7 +217,7 @@ async function scrapeChannel(browser, channel) {
         console.log(`  [diag] ${channel.id} looks like an access-restriction page`);
       }
       if (channel.watchGraphql) {
-        console.log(`  [diag] ${channel.id} graphql calls seen: ${apiCalls.length}`);
+        console.log(`  [diag] ${channel.id} graphql calls seen: ${apiCalls.length}, sales values captured: ${JSON.stringify(salesFromApi)}`);
         apiCalls.forEach((c, i) => console.log(`    #${i + 1} ${c.status} ${c.url} :: ${c.body}`));
       }
     } catch (err) {
@@ -177,11 +232,21 @@ async function scrapeChannel(browser, channel) {
 }
 
 async function main() {
-  const browser = await chromium.launch();
+  // ktown4u's sale-count widget appears to withhold data from headless browsers
+  // (navigator.webdriver === true is a dead giveaway). Running headed — real Chrome,
+  // real rendering pipeline — presents like an actual browser instead. On CI this
+  // needs a virtual display (see the "xvfb-run" wrapper in the workflow); locally,
+  // headed just opens a real window.
+  const browser = await chromium.launch({
+    headless: false,
+    args: ["--disable-blink-features=AutomationControlled"],
+  });
   const values = {};
   const failed = [];
+  const targets = ONLY_PLATFORM ? CHANNELS.filter((c) => c.platform === ONLY_PLATFORM) : CHANNELS;
+  if (ONLY_PLATFORM) console.log(`Filtering to platform="${ONLY_PLATFORM}": ${targets.map((c) => c.id).join(", ")}`);
   try {
-    for (const channel of CHANNELS) {
+    for (const channel of targets) {
       console.log(`Scraping ${channel.id} ...`);
       const result = await scrapeChannel(browser, channel);
       const ok = result && Object.values(result).every((v) => v !== null && v !== undefined);
@@ -205,7 +270,7 @@ async function main() {
   data.batches.push({ ts: new Date().toISOString(), values });
   fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2) + "\n");
 
-  console.log(`\nWrote batch with ${Object.keys(values).length}/${CHANNELS.length} channels.`);
+  console.log(`\nWrote batch with ${Object.keys(values).length}/${targets.length} channels.`);
   if (failed.length) console.log(`Channels missing this run: ${failed.join(", ")}`);
 }
 
