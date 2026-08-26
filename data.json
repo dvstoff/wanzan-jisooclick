@@ -387,6 +387,32 @@
           "photobook": 619
         }
       }
+    },
+    {
+      "ts": "2026-08-26T07:50:24.790Z",
+      "values": {
+        "ktown4u_echo": {
+          "set2cd": 5137,
+          "photobook": 2141,
+          "nfc": 3547,
+          "vinyl": 849
+        },
+        "ktown4u_stardust": {
+          "set2cd": 1536,
+          "vinyl": 278,
+          "nfc": 954,
+          "photobook": 640
+        },
+        "yetimall_echo": {
+          "main": 1448
+        },
+        "yetimall_stardust": {
+          "main": 759
+        },
+        "namilmarket_main": {
+          "main": 10
+        }
+      }
     }
   ]
 }
