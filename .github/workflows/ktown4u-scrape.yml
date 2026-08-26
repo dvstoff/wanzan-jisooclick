@@ -1,0 +1,54 @@
+name: Ktown4u scrape (frequent retry)
+
+# Ktown4u's sale-count widget is unreliable to automate — it works sometimes,
+# fails sometimes, for reasons that don't reduce to a single fixable bug (see
+# repo notes). Rather than chase a 100%-reliable single attempt, this runs
+# independently every 20 minutes so there are several real, spaced-out tries
+# per hour; any one success is enough to record a data point. The other
+# channels (Yetimall, Namilmarket) are reliable and stay on hourly-scrape.yml.
+
+on:
+  schedule:
+    - cron: "5,25,45 * * * *" # offset from the top of the hour so it doesn't collide with hourly-scrape.yml
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ktown4u-scrape
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium + system deps (incl. Xvfb)
+        run: npx playwright install --with-deps chromium
+
+      - name: Run ktown4u scraper (headed, under a virtual display)
+        run: xvfb-run --auto-servernum npm run scrape:ktown4u
+
+      - name: Commit updated data.json
+        run: |
+          git config user.name "wanzan-sales-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git fetch origin main
+          git rebase origin/main
+          if git diff --quiet -- data.json; then
+            echo "No changes to data.json this run."
+          else
+            git add data.json
+            git commit -m "chore: ktown4u snapshot $(date -u +'%Y-%m-%d %H:%M UTC')"
+            git push
+          fi
