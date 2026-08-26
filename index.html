@@ -327,8 +327,9 @@
     <p class="section-label">全站汇总（按站子分组）</p>
     <div class="summary-card">
       <div class="summary-total">
-        <div class="label">全站合计销量（当前口径,最新一批）</div>
+        <div class="label">目前所有平台加起来,一共卖出去</div>
         <div class="value mono" id="grandTotal">—</div>
+        <div class="label" style="margin-top:6px;">每小时自动更新一次。下面"统计口径"可以切换算法,不确定的话保持默认就好</div>
       </div>
     </div>
     <div class="group-grid" id="groupGrid"></div>
@@ -378,7 +379,7 @@
     </div>
     <div class="table-foot">
       <span class="count" id="siteRowCount"></span>
-      <span class="count">时间均为本地时区（Asia/Shanghai）</span>
+      <span class="count">时间均为本地时区（Asia/Shanghai）· <span style="color:var(--ink-mute)">浅色数字</span>=沿用上次结果,该渠道这次没重新查</span>
     </div>
   </section>
 
@@ -610,6 +611,20 @@
     });
     return any ? sum : null;
   }
+  // Different channels sometimes get checked on different runs (e.g. a retry-only
+  // run that only re-checks Ktown4u). Reading a single raw batch in isolation would
+  // then make the total look like it *dropped* — Yetimall/Namilmarket just weren't
+  // re-measured that run, they didn't go to zero. This builds a timeline where every
+  // point carries forward each channel's last *known* count, so the total and the
+  // trend line only ever reflect real measurements, never a measurement gap.
+  function buildTimeline() {
+    var current = {};
+    return BATCHES.map(function (b) {
+      var freshIds = Object.keys(b.values);
+      freshIds.forEach(function (id) { current[id] = b.values[id]; });
+      return { ts: b.ts, values: Object.assign({}, current), freshIds: freshIds };
+    });
+  }
   function fmt(n) { return n === null || n === undefined ? "—" : n.toLocaleString("zh-CN"); }
   function fmtDate(iso) {
     var d = new Date(iso);
@@ -714,7 +729,8 @@
 
   // ---- full-site summary ----
   function renderSiteSummary() {
-    var latest = BATCHES[BATCHES.length - 1];
+    var timeline = buildTimeline();
+    var latest = timeline[timeline.length - 1];
     document.getElementById("grandTotal").textContent = latest ? fmt(grandTotal(latest)) : "—";
 
     document.getElementById("groupGrid").innerHTML = GROUPS.map(function (g) {
@@ -731,14 +747,15 @@
   }
 
   function renderSiteChart() {
-    var points = BATCHES.map(function (b) { return { ts: b.ts, value: grandTotal(b) }; }).filter(function (p) { return p.value !== null; });
+    var timeline = buildTimeline();
+    var points = timeline.map(function (snap) { return { ts: snap.ts, value: grandTotal(snap) }; }).filter(function (p) { return p.value !== null; });
     renderLineChart("siteChartWrap", "siteChartNote", points, "全站合计");
   }
 
   function siteFilteredBatches() {
     var from = siteState.from ? new Date(siteState.from).getTime() : -Infinity;
     var to = siteState.to ? new Date(siteState.to).getTime() : Infinity;
-    return BATCHES.filter(function (b) { var t = new Date(b.ts).getTime(); return t >= from && t <= to; });
+    return buildTimeline().filter(function (b) { var t = new Date(b.ts).getTime(); return t >= from && t <= to; });
   }
 
   var TOTALED_CHANNELS = CHANNELS.filter(function (c) { return c.group !== "reference"; });
@@ -755,22 +772,27 @@
       tbody.innerHTML = '<tr class="empty-row"><td colspan="' + colSpan + '">所选时间段内没有记录</td></tr>';
       return;
     }
-    // deltas are computed against the full BATCHES timeline (not just the filtered rows) so
-    // "较上批次净增" always means "vs the previous hour", even when the table is filtered
+    // deltas compare against the full (unfiltered) timeline so "较上批次净增" always
+    // means "vs the previous recorded point", even when the table view is filtered
+    var fullTimeline = buildTimeline();
     var deltaByTs = {};
-    BATCHES.forEach(function (b, i) {
-      var prev = i > 0 ? grandTotal(BATCHES[i - 1]) : null;
-      var cur = grandTotal(b);
-      deltaByTs[b.ts] = (prev === null || cur === null) ? null : cur - prev;
+    fullTimeline.forEach(function (snap, i) {
+      var prev = i > 0 ? grandTotal(fullTimeline[i - 1]) : null;
+      var cur = grandTotal(snap);
+      deltaByTs[snap.ts] = (prev === null || cur === null) ? null : cur - prev;
     });
-    tbody.innerHTML = rows.slice().reverse().map(function (b) {
+    tbody.innerHTML = rows.slice().reverse().map(function (snap) {
       var cells = TOTALED_CHANNELS.map(function (c) {
-        return '<td class="mono">' + fmt(channelTotal(c, b.values[c.id])) + "</td>";
+        var fresh = snap.freshIds.indexOf(c.id) !== -1;
+        // "fresh" = actually re-checked this run; otherwise it's carried forward from
+        // the last time this channel *was* checked — shown dimmer, never left blank
+        var style = fresh ? "" : ' style="color:var(--ink-mute)"';
+        return '<td class="mono"' + style + '>' + fmt(channelTotal(c, snap.values[c.id])) + "</td>";
       }).join("");
-      var d = deltaByTs[b.ts];
+      var d = deltaByTs[snap.ts];
       var deltaCell = d === null ? '<td class="mono" style="color:var(--ink-mute)">首次记录</td>' :
         '<td class="mono" style="color:' + (d >= 0 ? "var(--good)" : "var(--ink)") + '">' + (d >= 0 ? "+" : "") + fmt(d) + "</td>";
-      return "<tr><td>" + fmtDate(b.ts) + "</td>" + cells + '<td class="mono total">' + fmt(grandTotal(b)) + "</td>" + deltaCell + "</tr>";
+      return "<tr><td>" + fmtDate(snap.ts) + "</td>" + cells + '<td class="mono total">' + fmt(grandTotal(snap)) + "</td>" + deltaCell + "</tr>";
     }).join("");
   }
 

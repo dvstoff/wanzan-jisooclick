@@ -716,28 +716,12 @@
       }
     },
     {
-      "ts": "2026-08-26T16:22:09.207Z",
+      "ts": "2026-08-27T00:17:33+08:00",
       "values": {
-        "ktown4u_echo": {
-          "set2cd": 6475,
-          "photobook": 3011,
-          "nfc": 5050,
-          "vinyl": 1020
-        },
-        "ktown4u_stardust": {
-          "set2cd": 1822,
-          "vinyl": 314,
-          "nfc": 1371,
-          "photobook": 842
-        },
-        "yetimall_echo": {
-          "main": 2578
-        },
-        "yetimall_stardust": {
-          "main": 1069
-        },
-        "namilmarket_main": {
-          "main": 11
+        "ktown4u_jp": {
+          "photobook": 33,
+          "nfc": 52,
+          "vinyl": 16
         }
       }
     }
