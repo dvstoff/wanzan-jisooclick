@@ -163,6 +163,7 @@
   .chart-card .heading { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; flex-wrap: wrap; gap: 8px;}
   .chart-card h3 { font-size: 15px; margin: 0; }
   .chart-card .heading .note { font-size: 12px; color: var(--ink-mute); }
+  .chart-hint { font-size: 12px; color: var(--ink-mute); margin: 2px 0 14px; }
   svg.chart { width: 100%; height: 220px; overflow: visible; }
   .chart-empty {
     display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 6px;
@@ -224,6 +225,7 @@
   tbody tr:last-child td { border-bottom: none; }
   tbody td:first-child { color: var(--ink-dim); }
   tbody td.total { font-weight: 700; color: var(--ink); }
+  .col-divider { border-right: 1px solid var(--line-strong); }
   .empty-row td { text-align: center; color: var(--ink-mute); padding: 26px; font-size: 13px; }
 
   .table-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; flex-wrap: wrap; gap: 8px;}
@@ -250,6 +252,19 @@
   }
   .summary-total .label { font-size: 12px; color: var(--ink-mute); margin-bottom: 2px; }
   .summary-total .value { font-size: clamp(38px, 7vw, 52px); font-weight: 700; letter-spacing: -0.01em; }
+  .summary-row { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-end; justify-content: space-between; }
+  .summary-forecast {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+    padding: 12px 16px; border: 1px dashed var(--line-strong); border-radius: 12px; background: var(--surface-2);
+    min-width: 220px;
+  }
+  .summary-forecast .sf-badge {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.04em; color: var(--accent);
+    text-transform: uppercase;
+  }
+  .summary-forecast .sf-value { font-size: 24px; font-weight: 700; font-family: ui-monospace, monospace; font-variant-numeric: tabular-nums; margin-top: 2px; }
+  .summary-forecast .sf-range { font-size: 12px; color: var(--ink-dim); margin-top: 2px; }
+  .summary-forecast .sf-note { font-size: 11px; color: var(--ink-mute); margin-top: 4px; max-width: 32ch; }
 
   .group-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px,1fr)); gap: 12px; }
   .group-card {
@@ -262,6 +277,37 @@
     font-size: 11px; color: var(--ink-dim); background: var(--surface-2); border: 1px solid var(--line);
     border-radius: 100px; padding: 3px 9px; font-family: ui-monospace, monospace;
   }
+
+  /* daily bars */
+  .daily-bars { display: flex; align-items: flex-end; gap: 10px; height: 200px; overflow-x: auto; padding-bottom: 2px; }
+  .daily-bar {
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%;
+    min-width: 52px; flex: 1 0 52px; cursor: pointer; border: none; background: none; padding: 0; font: inherit;
+  }
+  .daily-bar .db-value { font-size: 12px; font-weight: 700; font-family: ui-monospace, monospace; color: var(--ink-dim); margin-bottom: 6px; white-space: nowrap; }
+  .daily-bar .db-col { width: 100%; max-width: 44px; border-radius: 7px 7px 3px 3px; background: var(--accent-wash); min-height: 4px; transition: background 0.15s; }
+  .daily-bar:hover .db-col { background: color-mix(in srgb, var(--accent) 35%, var(--accent-wash)); }
+  .daily-bar[aria-pressed="true"] .db-col { background: var(--accent); }
+  .daily-bar[aria-pressed="true"] .db-value { color: var(--ink); }
+  .daily-bar .db-label { font-size: 11px; color: var(--ink-mute); margin-top: 8px; white-space: nowrap; }
+  .daily-bar[aria-pressed="true"] .db-label { color: var(--ink-dim); font-weight: 600; }
+  .daily-bar .db-tag { font-size: 10px; color: var(--ink-mute); }
+
+  /* forecast */
+  .forecast-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+    padding: 20px 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 18px;
+  }
+  .forecast-card .fc-empty { color: var(--ink-mute); font-size: 13px; grid-column: 1 / -1; }
+  .forecast-card .fc-label { font-size: 12px; color: var(--ink-mute); margin-bottom: 4px; }
+  .forecast-card .fc-value { font-size: 22px; font-weight: 700; }
+  .forecast-card .fc-value.mono { font-family: ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+  .forecast-card .fc-sub { font-size: 12px; color: var(--ink-dim); margin-top: 4px; }
+  .forecast-card .fc-note {
+    grid-column: 1 / -1; font-size: 12px; color: var(--ink-mute); padding-top: 12px; border-top: 1px solid var(--line);
+  }
+  .forecast-card .fc-r2-good { color: var(--good); }
+  .forecast-card .fc-r2-bad { color: var(--ink-mute); }
 
   footer { border-top: 1px solid var(--line); padding-top: 20px; margin-top: 48px; }
   footer p { font-size: 12px; color: var(--ink-mute); max-width: 72ch; margin: 0 0 8px; }
@@ -326,20 +372,45 @@
   <section>
     <p class="section-label">全站汇总（按站子分组）</p>
     <div class="summary-card">
-      <div class="summary-total">
-        <div class="label">目前所有平台加起来,一共卖出去</div>
-        <div class="value mono" id="grandTotal">—</div>
-        <div class="label" style="margin-top:6px;">每小时自动更新一次。下面"统计口径"可以切换算法,不确定的话保持默认就好</div>
+      <div class="summary-row">
+        <div class="summary-total">
+          <div class="label">目前所有平台加起来,一共卖出去</div>
+          <div class="value mono" id="grandTotal">—</div>
+        </div>
+        <div class="summary-forecast" id="summaryForecast"></div>
       </div>
+      <div class="label" style="margin-top:14px;">每小时自动更新一次。下面"统计口径"可以切换算法,不确定的话保持默认就好</div>
     </div>
     <div class="group-grid" id="groupGrid"></div>
   </section>
 
   <section>
     <p class="section-label">全站趋势</p>
+
     <div class="chart-card">
       <div class="heading">
-        <h3>全站合计随时间变化</h3>
+        <h3>每日净增</h3>
+        <span class="note" id="siteDailyNote"></span>
+      </div>
+      <p class="chart-hint">每根柱子是那一天卖出去的净增量,点一根柱子可以展开看那天从早到晚的详细记录</p>
+      <div class="daily-bars" id="siteDailyBars"></div>
+    </div>
+
+    <div class="chart-card" style="margin-top:14px;">
+      <div class="heading">
+        <h3 id="siteDayDetailTitle">当日明细</h3>
+        <span class="note" id="siteDayDetailNote"></span>
+        <button type="button" class="icon-btn" id="siteDayDetailPngBtn">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          导出图表 PNG
+        </button>
+      </div>
+      <div class="chart-wrap" id="siteDayDetailWrap"></div>
+    </div>
+
+    <div class="chart-card" style="margin-top:14px;">
+      <div class="heading">
+        <h3>从发售至今 · 累计总量</h3>
         <span class="note" id="siteChartNote"></span>
         <button type="button" class="icon-btn" id="siteChartPngBtn">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
@@ -348,6 +419,11 @@
       </div>
       <div class="chart-wrap" id="siteChartWrap"></div>
     </div>
+  </section>
+
+  <section>
+    <p class="section-label">预测详情（线性回归 + t 分布预测区间）</p>
+    <div class="forecast-card" id="forecastCard"></div>
   </section>
 
   <section>
@@ -432,18 +508,6 @@
         <div class="value dim" id="statSpan">—</div>
         <div class="sub">自动化每小时抓取尚未启用</div>
       </div>
-    </div>
-
-    <div class="chart-card" style="margin-top:20px;">
-      <div class="heading">
-        <h3 id="chChartTitle">该渠道销量随时间变化</h3>
-        <span class="note" id="chartNote"></span>
-        <button type="button" class="icon-btn" id="chartPngBtn">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-          导出图表 PNG
-        </button>
-      </div>
-      <div class="chart-wrap" id="chartWrap"></div>
     </div>
 
     <div style="margin-top:20px;">
@@ -577,6 +641,7 @@
   // ---- state ----
   var state = { channel: "ktown4u_echo", convention: "physical", vinyl: "exclude", preset: "all", from: null, to: null };
   var siteState = { preset: "all", from: null, to: null };
+  var siteDailyState = { selectedDay: null };
 
   function channelById(id) { return CHANNELS.filter(function (c) { return c.id === id; })[0]; }
   function activeChannel() { return channelById(state.channel) || CHANNELS[0]; }
@@ -639,6 +704,16 @@
     return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + "T" + pad(d.getHours()) + ":" + pad(d.getMinutes());
   }
 
+  // Local-calendar-day key, e.g. "2026-8-27" — shared by every day-bucketing helper below
+  // so a "day" always means the same thing (viewer's local midnight-to-midnight).
+  function dayKey(ts) {
+    var d = new Date(ts);
+    return d.getFullYear() + "-" + d.getMonth() + "-" + d.getDate();
+  }
+  function dayLabel(ts) {
+    var d = new Date(ts);
+    return (d.getMonth() + 1) + "/" + d.getDate();
+  }
   // Collapses multiple same-hour points down to one (the latest value seen in that
   // hour) so a burst of manual test batches within one hour doesn't clutter the chart.
   // Points must already be in chronological order.
@@ -651,6 +726,93 @@
       buckets[key] = p;
     });
     return order.map(function (key) { return buckets[key]; });
+  }
+  // One point per calendar day — the *last* value recorded that day.
+  function bucketByDay(points) {
+    var buckets = {}, order = [];
+    points.forEach(function (p) {
+      var key = dayKey(p.ts);
+      if (!(key in buckets)) order.push(key);
+      buckets[key] = p;
+    });
+    return order.map(function (key) { return buckets[key]; });
+  }
+  // Every point recorded on one specific calendar day, at full (unbucketed) resolution —
+  // this is what powers the "click a day, see that day's real records" detail chart.
+  function pointsOnDay(points, key) {
+    return points.filter(function (p) { return dayKey(p.ts) === key; });
+  }
+  // One entry per calendar day with that day's net increase over the previous day.
+  // The very first day is marked partial=true (tracking started mid-day, so its "delta"
+  // is really just the running total, not a full day's growth) and so is the last day
+  // if it isn't over yet — both change how the bar should be read, not just its number.
+  function dailyDeltas(points) {
+    var days = bucketByDay(points);
+    var today = dayKey(new Date().toISOString());
+    return days.map(function (d, i) {
+      var delta = i === 0 ? d.value : d.value - days[i - 1].value;
+      return { key: dayKey(d.ts), ts: d.ts, value: d.value, delta: delta, isFirst: i === 0, isOngoing: dayKey(d.ts) === today };
+    });
+  }
+  // Keeps only points within the last 24h of the *latest* point (not wall-clock now),
+  // so a chart still makes sense when viewed well after the last scrape.
+  function last24h(points) {
+    if (!points.length) return points;
+    var cutoff = new Date(points[points.length - 1].ts).getTime() - 24 * 3600000;
+    return points.filter(function (p) { return new Date(p.ts).getTime() >= cutoff; });
+  }
+
+  // ---- simple linear-regression forecast (least squares, hours-since-first-point as x) ----
+  function linearRegression(points) {
+    if (points.length < 2) return null;
+    var x0 = new Date(points[0].ts).getTime();
+    var xs = points.map(function (p) { return (new Date(p.ts).getTime() - x0) / 3600000; });
+    var ys = points.map(function (p) { return p.value; });
+    var n = xs.length;
+    var meanX = xs.reduce(function (a, b) { return a + b; }, 0) / n;
+    var meanY = ys.reduce(function (a, b) { return a + b; }, 0) / n;
+    var num = 0, sxx = 0;
+    for (var i = 0; i < n; i++) { num += (xs[i] - meanX) * (ys[i] - meanY); sxx += (xs[i] - meanX) * (xs[i] - meanX); }
+    var slope = sxx === 0 ? 0 : num / sxx;
+    var intercept = meanY - slope * meanX;
+    var ssTot = 0, ssRes = 0;
+    for (var j = 0; j < n; j++) {
+      var pred = intercept + slope * xs[j];
+      ssRes += (ys[j] - pred) * (ys[j] - pred);
+      ssTot += (ys[j] - meanY) * (ys[j] - meanY);
+    }
+    var r2 = ssTot === 0 ? 1 : 1 - ssRes / ssTot;
+    var residualStd = n > 2 ? Math.sqrt(ssRes / (n - 2)) : 0;
+    return { x0: x0, slope: slope, intercept: intercept, r2: r2, n: n, meanX: meanX, sxx: sxx, residualStd: residualStd };
+  }
+  function forecastValueAt(reg, date) {
+    var hours = (date.getTime() - reg.x0) / 3600000;
+    return reg.intercept + reg.slope * hours;
+  }
+  // Two-tailed 95% critical values, df 1–30 then the usual 40/60/120/∞ table entries —
+  // a small samples the "last 24h" regression window realistically has. Falls back to
+  // the nearest tabulated df (rounding toward more conservative / wider) otherwise.
+  var T_TABLE_95 = {
+    1: 12.706, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571, 6: 2.447, 7: 2.365, 8: 2.306, 9: 2.262, 10: 2.228,
+    11: 2.201, 12: 2.179, 13: 2.160, 14: 2.145, 15: 2.131, 16: 2.120, 17: 2.110, 18: 2.101, 19: 2.093, 20: 2.086,
+    21: 2.080, 22: 2.074, 23: 2.069, 24: 2.064, 25: 2.060, 26: 2.056, 27: 2.052, 28: 2.048, 29: 2.045, 30: 2.042,
+    40: 2.021, 60: 2.000, 120: 1.980
+  };
+  function tCritical95(df) {
+    if (df >= 120) return 1.960;
+    if (T_TABLE_95[df]) return T_TABLE_95[df];
+    var keys = Object.keys(T_TABLE_95).map(Number).sort(function (a, b) { return a - b; });
+    for (var i = 0; i < keys.length; i++) { if (keys[i] >= df) return T_TABLE_95[keys[i]]; }
+    return 1.960;
+  }
+  // Standard simple-linear-regression prediction interval for a *new* point at x0 hours
+  // (not the narrower confidence interval for the mean line) — widens both with fewer
+  // points (n) and the further x0 sits from the data's own time span (meanX).
+  function predictionInterval95(reg, x0) {
+    var df = reg.n - 2;
+    if (df < 1) return null;
+    var se = reg.residualStd * Math.sqrt(1 + 1 / reg.n + Math.pow(x0 - reg.meanX, 2) / (reg.sxx || 1));
+    return { margin: tCritical95(df) * se, df: df };
   }
 
   // ---- generic line chart, renders into #<prefix>Wrap / notes into #<prefix>Note ----
@@ -766,6 +928,155 @@
     renderLineChart("siteChartWrap", "siteChartNote", bucketByHour(points), "全站合计");
   }
 
+  // Shared by the site-wide and per-channel trend sections: a bar per calendar day
+  // (net increase over the previous day), click a bar to drive the detail chart below it.
+  function renderDailyBars(barsElId, noteElId, points, dailyState, onSelect) {
+    var barsEl = document.getElementById(barsElId);
+    var noteEl = document.getElementById(noteElId);
+    var deltas = dailyDeltas(points);
+    if (!deltas.length) {
+      if (noteEl) noteEl.textContent = "";
+      barsEl.innerHTML = '<div class="chart-empty" style="height:auto;padding:24px 0;">还没有记录,积累数据后会显示每日净增</div>';
+      onSelect(null, deltas);
+      return;
+    }
+    if (noteEl) noteEl.textContent = deltas.length + " 天";
+    var validKeys = deltas.map(function (d) { return d.key; });
+    if (!dailyState.selectedDay || validKeys.indexOf(dailyState.selectedDay) === -1) {
+      dailyState.selectedDay = deltas[deltas.length - 1].key;
+    }
+    var maxDelta = Math.max.apply(null, deltas.map(function (d) { return Math.max(d.delta, 0); }).concat([1]));
+    barsEl.innerHTML = deltas.map(function (d) {
+      var heightPct = Math.max(4, Math.round(Math.max(d.delta, 0) / maxDelta * 100));
+      var tag = d.isFirst ? "首日不完整" : (d.isOngoing ? "进行中" : "");
+      var pressed = d.key === dailyState.selectedDay;
+      return '<button type="button" class="daily-bar" data-day="' + d.key + '" aria-pressed="' + pressed + '">' +
+        '<div class="db-value">' + (d.delta >= 0 ? "+" : "") + fmt(d.delta) + '</div>' +
+        '<div class="db-col" style="height:' + heightPct + '%"></div>' +
+        '<div class="db-label">' + dayLabel(d.ts) + '</div>' +
+        (tag ? '<div class="db-tag">' + tag + '</div>' : '<div class="db-tag">&nbsp;</div>') +
+        '</button>';
+    }).join("");
+    barsEl.querySelectorAll("[data-day]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        dailyState.selectedDay = btn.getAttribute("data-day");
+        barsEl.querySelectorAll("[data-day]").forEach(function (b) { b.setAttribute("aria-pressed", b === btn ? "true" : "false"); });
+        onSelect(dailyState.selectedDay, deltas);
+      });
+    });
+    onSelect(dailyState.selectedDay, deltas);
+  }
+  function renderDayDetail(wrapId, noteId, titleId, points, key, emptyLabel) {
+    var titleEl = document.getElementById(titleId);
+    if (!key) {
+      if (titleEl) titleEl.textContent = "当日明细";
+      renderLineChart(wrapId, noteId, [], emptyLabel);
+      return;
+    }
+    var dayPoints = pointsOnDay(points, key);
+    if (titleEl && dayPoints.length) {
+      var d = new Date(dayPoints[0].ts);
+      titleEl.textContent = (d.getMonth() + 1) + "月" + d.getDate() + "日明细";
+    }
+    renderLineChart(wrapId, noteId, dayPoints, emptyLabel);
+  }
+  function renderSiteDaily() {
+    var timeline = buildTimeline();
+    var points = timeline.map(function (snap) { return { ts: snap.ts, value: grandTotal(snap) }; }).filter(function (p) { return p.value !== null; });
+    renderDailyBars("siteDailyBars", "siteDailyNote", points, siteDailyState, function (key) {
+      renderDayDetail("siteDayDetailWrap", "siteDayDetailNote", "siteDayDetailTitle", points, key, "全站合计");
+    });
+  }
+
+  // Compares the last two full calendar days (skipping the first, mid-tracking-start day)
+  // so the forecast copy can honestly say whether the pace is speeding up or slowing down,
+  // instead of pretending a single straight line tells the whole story.
+  function dailyTrendNote(points) {
+    var deltas = dailyDeltas(points).filter(function (d) { return !d.isFirst; });
+    if (deltas.length < 2) return "";
+    var last = deltas[deltas.length - 1], prev = deltas[deltas.length - 2];
+    var lastLabel = fmt(last.delta) + (last.isOngoing ? "（进行中,还没结束）" : "");
+    if (last.delta < prev.delta) {
+      return "最近一天净增比前一天少（" + fmt(prev.delta) + " → " + lastLabel + "）,增速在放缓。如果这个趋势持续,实际到 9/4 的总量很可能比下面这个区间更低；但临近截止日常有冲量,也可能反超。";
+    } else if (last.delta > prev.delta) {
+      return "最近一天净增比前一天多（" + fmt(prev.delta) + " → " + lastLabel + "）,增速在加快。";
+    }
+    return "";
+  }
+
+  // Rough linear extrapolation from the last 24h of hourly grand-total points, projected
+  // forward to the release-date cutoff. This is NOT a real sales model — preorder velocity
+  // is not constant (bursts around promos/deadlines) — it's a "if recent pace holds" estimate.
+  // Uses a proper simple-linear-regression prediction interval (t distribution, accounts for
+  // sample size and how far release-date sits from the observed window) rather than a flat
+  // ±1.96·σ normal-approximation shortcut.
+  function computeForecast(points) {
+    var hourly = bucketByHour(points);
+    var recent = last24h(hourly);
+    var reg = linearRegression(recent);
+    if (!reg) return null;
+    var releaseD = new Date(RELEASE_DATE);
+    var now = new Date();
+    if (now >= releaseD) return { reg: reg, expired: true };
+    var x0 = (releaseD.getTime() - reg.x0) / 3600000;
+    var projected = forecastValueAt(reg, releaseD);
+    var pi = predictionInterval95(reg, x0);
+    return {
+      reg: reg, expired: false, projected: projected,
+      lo: pi ? Math.max(0, projected - pi.margin) : null,
+      hi: pi ? projected + pi.margin : null,
+      pi: pi
+    };
+  }
+  function renderSummaryForecast() {
+    var el = document.getElementById("summaryForecast");
+    var timeline = buildTimeline();
+    var points = timeline.map(function (snap) { return { ts: snap.ts, value: grandTotal(snap) }; }).filter(function (p) { return p.value !== null; });
+    var fc = computeForecast(points);
+    if (!fc) { el.innerHTML = '<div class="sf-badge">预测</div><div class="sf-note">数据点还不够,积累更多批次后出现</div>'; return; }
+    if (fc.expired) { el.innerHTML = '<div class="sf-badge">预测</div><div class="sf-note">已过发行日截止时间</div>'; return; }
+    var trend = dailyTrendNote(points);
+    el.innerHTML =
+      '<div class="sf-badge">预测 · ' + fmtDateShort(RELEASE_DATE) + ' 发行日</div>' +
+      '<div class="sf-value mono">约 ' + fmt(Math.round(fc.projected)) + '</div>' +
+      (fc.pi ? '<div class="sf-range">95% 预测区间 ' + fmt(Math.round(fc.lo)) + ' ~ ' + fmt(Math.round(fc.hi)) + '</div>' : '') +
+      '<div class="sf-note">按近 24 小时增速线性外推,仅供参考' + (trend ? "，" + (trend.indexOf("放缓") !== -1 ? "增速在放缓" : "增速在加快") : "") + '，详情见下方"预测详情"</div>';
+  }
+  function renderForecast() {
+    var el = document.getElementById("forecastCard");
+    var timeline = buildTimeline();
+    var points = timeline.map(function (snap) { return { ts: snap.ts, value: grandTotal(snap) }; }).filter(function (p) { return p.value !== null; });
+    var fc = computeForecast(points);
+    if (!fc) {
+      el.innerHTML = '<div class="fc-empty">数据点还不够（至少需要 2 个近 24 小时内的小时级记录点),积累更多批次后会自动出现预测</div>';
+      return;
+    }
+    var reg = fc.reg;
+    var perHour = reg.slope, perDay = reg.slope * 24;
+    var projectedText = "已过发行日截止时间", marginText = "", subText = "追踪窗口已在发行日截止,不再外推";
+    if (!fc.expired) {
+      projectedText = fmt(Math.round(fc.projected));
+      marginText = fc.pi ? (" ｜ 95% 预测区间 " + fmt(Math.round(fc.lo)) + " ~ " + fmt(Math.round(fc.hi))) : "（记录点太少,算不出置信区间)";
+      subText = "按近 24 小时增速外推到 " + fmtDate(RELEASE_DATE);
+    }
+    var r2Pct = (reg.r2 * 100).toFixed(0);
+    var r2Class = reg.r2 >= 0.85 ? "fc-r2-good" : "fc-r2-bad";
+    var r2Note = reg.r2 >= 0.85 ? "近 24 小时增速比较匀速,外推相对可信" : "近 24 小时增速本身波动较大,外推仅作粗略参考";
+    var tNote = fc.pi ? ("t(" + fc.pi.df + ") = " + tCritical95(fc.pi.df).toFixed(3) + " · 样本 n=" + reg.n + "（自由度越小,区间越宽,越诚实地反映数据还不够多）") : "";
+    var trend = dailyTrendNote(points);
+    el.innerHTML =
+      '<div><div class="fc-label">近 24 小时增速</div><div class="fc-value mono">' + (perHour >= 0 ? "+" : "") + fmt(Math.round(perHour)) + ' /小时</div>' +
+      '<div class="fc-sub">约 ' + (perDay >= 0 ? "+" : "") + fmt(Math.round(perDay)) + ' /天 · 基于 ' + reg.n + ' 个记录点</div></div>' +
+      '<div><div class="fc-label">线性回归外推 · 预计发行日全站合计</div><div class="fc-value mono">' + projectedText + '</div>' +
+      '<div class="fc-sub">' + subText + marginText + '</div></div>' +
+      '<div><div class="fc-label">拟合优度 R²（越接近 1 说明增速越匀速）</div><div class="fc-value mono ' + r2Class + '">' + r2Pct + '%</div>' +
+      '<div class="fc-sub">' + r2Note + '</div></div>' +
+      (tNote ? '<div><div class="fc-label">t 分布预测区间参数</div><div class="fc-value mono" style="font-size:15px;">' + tNote + '</div>' +
+        '<div class="fc-sub">区间用的是标准简单线性回归"预测区间"公式,不是仅凭正态近似的 ±1.96</div></div>' : '') +
+      (trend ? '<div class="fc-note">' + trend + '</div>' : '') +
+      '<div class="fc-note">线性回归外推,不是真实销量预测模型：预售节奏常有促销/截止日冲量等突发波动,不会一直匀速增长。仅供参考,不代表实际结果。</div>';
+  }
+
   function siteFilteredBatches() {
     var from = siteState.from ? new Date(siteState.from).getTime() : -Infinity;
     var to = siteState.to ? new Date(siteState.to).getTime() : Infinity;
@@ -776,9 +1087,12 @@
 
   function renderSiteTable() {
     var rows = siteFilteredBatches();
+    // 全站合计 / 较上批次净增 come right after 时间 (before the per-channel breakdown)
+    // so they're visible without scrolling — they're the two numbers people actually
+    // check at a glance; the per-channel columns are detail you scroll sideways for.
     document.getElementById("siteTableHead").innerHTML =
-      "<tr><th>时间</th>" + TOTALED_CHANNELS.map(function (c) { return "<th>" + c.label + " · " + c.sub + "</th>"; }).join("") +
-      "<th>全站合计</th><th>较上批次净增</th></tr>";
+      "<tr><th>时间</th><th>全站合计</th><th class=\"col-divider\">较上批次净增</th>" +
+      TOTALED_CHANNELS.map(function (c) { return "<th>" + c.label + " · " + c.sub + "</th>"; }).join("") + "</tr>";
     var tbody = document.getElementById("siteTableBody");
     document.getElementById("siteRowCount").textContent = rows.length + " / " + BATCHES.length + " 条记录";
     var colSpan = TOTALED_CHANNELS.length + 3;
@@ -804,9 +1118,9 @@
         return '<td class="mono"' + style + '>' + fmt(channelTotal(c, snap.values[c.id])) + "</td>";
       }).join("");
       var d = deltaByTs[snap.ts];
-      var deltaCell = d === null ? '<td class="mono" style="color:var(--ink-mute)">首次记录</td>' :
-        '<td class="mono" style="color:' + (d >= 0 ? "var(--good)" : "var(--ink)") + '">' + (d >= 0 ? "+" : "") + fmt(d) + "</td>";
-      return "<tr><td>" + fmtDate(snap.ts) + "</td>" + cells + '<td class="mono total">' + fmt(grandTotal(snap)) + "</td>" + deltaCell + "</tr>";
+      var deltaCell = d === null ? '<td class="mono col-divider" style="color:var(--ink-mute)">首次记录</td>' :
+        '<td class="mono col-divider" style="color:' + (d >= 0 ? "var(--good)" : "var(--ink)") + '">' + (d >= 0 ? "+" : "") + fmt(d) + "</td>";
+      return "<tr><td>" + fmtDate(snap.ts) + '</td><td class="mono total">' + fmt(grandTotal(snap)) + "</td>" + deltaCell + cells + "</tr>";
     }).join("");
   }
 
@@ -881,7 +1195,6 @@
     var heroEl = document.getElementById("heroNumber");
     var labelEl = document.getElementById("heroLabel");
     var breakdownEl = document.getElementById("breakdown");
-    document.getElementById("chChartTitle").textContent = channel.label + " · " + channel.sub + " 销量随时间变化";
     if (!latest) {
       heroEl.textContent = "—"; labelEl.textContent = "暂无记录"; breakdownEl.innerHTML = ""; return;
     }
@@ -930,12 +1243,6 @@
     }
   }
 
-  function renderChannelChart() {
-    var channel = activeChannel();
-    var points = channelSnapshots(channel).map(function (s) { return { ts: s.ts, value: channelTotal(channel, s.counts) }; });
-    renderLineChart("chartWrap", "chartNote", bucketByHour(points), channel.label + " · " + channel.sub);
-  }
-
   function filteredChannelSnapshots() {
     var channel = activeChannel();
     var from = state.from ? new Date(state.from).getTime() : -Infinity;
@@ -966,7 +1273,8 @@
   function renderChannelTableHead() {
     var channel = activeChannel();
     var cols = channel.items.map(function (it) { return "<th>" + it.name + "</th>"; }).join("");
-    document.getElementById("tableHead").innerHTML = "<tr><th>时间</th>" + cols + "<th>合计（当前口径）</th><th>较上批次净增</th></tr>";
+    // 合计/净增 right after 时间 (before the per-item breakdown), same reasoning as the site table
+    document.getElementById("tableHead").innerHTML = "<tr><th>时间</th><th>合计（当前口径）</th><th class=\"col-divider\">较上批次净增</th>" + cols + "</tr>";
   }
 
   function renderChannelTable() {
@@ -987,9 +1295,9 @@
       var total = channelTotal(channel, s.counts);
       var cells = channel.items.map(function (it) { return '<td class="mono">' + fmt(s.counts[it.id] || 0) + "</td>"; }).join("");
       var d = deltaByTs[s.ts];
-      var deltaCell = d === null ? '<td class="mono" style="color:var(--ink-mute)">首次记录</td>' :
-        '<td class="mono" style="color:' + (d >= 0 ? "var(--good)" : "var(--ink)") + '">' + (d >= 0 ? "+" : "") + fmt(d) + "</td>";
-      return "<tr><td>" + fmtDate(s.ts) + "</td>" + cells + '<td class="mono total">' + fmt(total) + "</td>" + deltaCell + "</tr>";
+      var deltaCell = d === null ? '<td class="mono col-divider" style="color:var(--ink-mute)">首次记录</td>' :
+        '<td class="mono col-divider" style="color:' + (d >= 0 ? "var(--good)" : "var(--ink)") + '">' + (d >= 0 ? "+" : "") + fmt(d) + "</td>";
+      return "<tr><td>" + fmtDate(s.ts) + '</td><td class="mono total">' + fmt(total) + "</td>" + deltaCell + cells + "</tr>";
     }).join("");
   }
 
@@ -1080,7 +1388,6 @@
     renderChannelHeaderChips();
     renderHero();
     renderStats();
-    renderChannelChart();
     renderChannelTableHead();
     renderChannelTable();
   }
@@ -1088,7 +1395,10 @@
   function renderAll() {
     renderHeader();
     renderSiteSummary();
+    renderSummaryForecast();
+    renderSiteDaily();
     renderSiteChart();
+    renderForecast();
     renderSiteTable();
     renderChannelView();
   }
@@ -1126,6 +1436,7 @@
   document.querySelectorAll("[data-site-preset]").forEach(function (btn) {
     btn.addEventListener("click", function () { applySitePreset(btn.getAttribute("data-site-preset")); renderSiteTable(); });
   });
+
   document.getElementById("siteFromInput").addEventListener("change", function (e) {
     siteState.from = e.target.value ? new Date(e.target.value).toISOString() : null;
     document.querySelectorAll("[data-site-preset]").forEach(function (b) { b.setAttribute("aria-pressed", "false"); });
@@ -1140,8 +1451,8 @@
   document.getElementById("siteChartPngBtn").addEventListener("click", function () {
     exportChartPng("siteChartWrap", "jisoo-click-site-trend.png");
   });
-  document.getElementById("chartPngBtn").addEventListener("click", function () {
-    exportChartPng("chartWrap", "jisoo-click-" + activeChannel().id + "-trend.png");
+  document.getElementById("siteDayDetailPngBtn").addEventListener("click", function () {
+    exportChartPng("siteDayDetailWrap", "jisoo-click-site-" + (siteDailyState.selectedDay || "day") + ".png");
   });
 
   // ---- watermark (visual only, not real DRM) ----
