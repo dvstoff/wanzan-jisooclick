@@ -1,0 +1,54 @@
+name: Hourly sales scrape
+
+on:
+  schedule:
+    # Scheduled at :55 rather than the top of the hour on purpose: every cron job on
+    # GitHub piles up at :00, which is exactly when scheduled runs get delayed or
+    # dropped. :55 dodges that jam — and since a run itself takes ~8-9 minutes, it
+    # lands right around the new hour, so the data still reads as "fresh this hour".
+    - cron: "55 * * * *"
+  workflow_dispatch: {} # lets you trigger a run manually from the Actions tab
+
+permissions:
+  contents: write
+
+concurrency:
+  group: hourly-scrape
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium + system deps (incl. Xvfb)
+        run: npx playwright install --with-deps chromium
+
+      - name: Run scraper (headed, under a virtual display)
+        # Ktown4u's sale-count widget appears to withhold data from browsers
+        # flagged as automated (navigator.webdriver). Running Chromium headed
+        # instead of headless avoids that flag — xvfb-run gives it a virtual
+        # display to render into since this runner has no real screen.
+        run: xvfb-run --auto-servernum npm run scrape
+
+      - name: Commit updated data.json
+        run: |
+          git config user.name "wanzan-sales-bot"
+          git config user.email "actions@users.noreply.github.com"
+          if git diff --quiet -- data.json; then
+            echo "No changes to data.json this run."
+          else
+            git add data.json
+            git commit -m "chore: hourly sales snapshot $(date -u +'%Y-%m-%d %H:%M UTC')"
+            git pull --rebase --autostash origin main
+            git push
+          fi
