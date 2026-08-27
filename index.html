@@ -639,6 +639,20 @@
     return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + "T" + pad(d.getHours()) + ":" + pad(d.getMinutes());
   }
 
+  // Collapses multiple same-hour points down to one (the latest value seen in that
+  // hour) so a burst of manual test batches within one hour doesn't clutter the chart.
+  // Points must already be in chronological order.
+  function bucketByHour(points) {
+    var buckets = {}, order = [];
+    points.forEach(function (p) {
+      var d = new Date(p.ts);
+      var key = d.getFullYear() + "-" + d.getMonth() + "-" + d.getDate() + "-" + d.getHours();
+      if (!(key in buckets)) order.push(key);
+      buckets[key] = p;
+    });
+    return order.map(function (key) { return buckets[key]; });
+  }
+
   // ---- generic line chart, renders into #<prefix>Wrap / notes into #<prefix>Note ----
   function renderLineChart(wrapId, noteId, points, emptyLabel) {
     var wrap = document.getElementById(wrapId);
@@ -749,7 +763,7 @@
   function renderSiteChart() {
     var timeline = buildTimeline();
     var points = timeline.map(function (snap) { return { ts: snap.ts, value: grandTotal(snap) }; }).filter(function (p) { return p.value !== null; });
-    renderLineChart("siteChartWrap", "siteChartNote", points, "全站合计");
+    renderLineChart("siteChartWrap", "siteChartNote", bucketByHour(points), "全站合计");
   }
 
   function siteFilteredBatches() {
@@ -919,7 +933,7 @@
   function renderChannelChart() {
     var channel = activeChannel();
     var points = channelSnapshots(channel).map(function (s) { return { ts: s.ts, value: channelTotal(channel, s.counts) }; });
-    renderLineChart("chartWrap", "chartNote", points, channel.label + " · " + channel.sub);
+    renderLineChart("chartWrap", "chartNote", bucketByHour(points), channel.label + " · " + channel.sub);
   }
 
   function filteredChannelSnapshots() {
