@@ -1210,11 +1210,23 @@
   function toKST(ts) {
     return new Date(new Date(ts).getTime() + KST_OFFSET_MS);
   }
+  // The hourly scrape is triggered on the hour but takes a few minutes to actually run
+  // (~9 min observed) before it commits a batch, so the job meant to capture a day's
+  // closing state can land with a timestamp a few minutes into the *next* KST day.
+  // Day-bucketing (which day a batch counts toward) backdates by this grace window
+  // before reading the KST calendar date, so that trailing batch still closes out the
+  // day it was actually scraped for instead of falsely opening the next one. Genuinely
+  // exact display of "what time is it in KST" (toLocalInput, tooltips, etc.) is
+  // unaffected — this only shifts *which day something is bucketed under*.
+  var DAY_BOUNDARY_GRACE_MS = 15 * 60000;
+  function toKSTDay(ts) {
+    return toKST(new Date(ts).getTime() - DAY_BOUNDARY_GRACE_MS);
+  }
   // The real instant that is KST midnight of the KST calendar day containing `ts` —
   // used for the "today" range preset so it lines up with the KST day boundary
   // everywhere else on the page, not the viewer's own local midnight.
   function startOfKSTDay(ts) {
-    var k = toKST(ts);
+    var k = toKSTDay(ts);
     return new Date(Date.UTC(k.getUTCFullYear(), k.getUTCMonth(), k.getUTCDate()) - KST_OFFSET_MS);
   }
   // Calendar-day key in KST, e.g. "2026-8-27" — shared by every day-bucketing helper below
@@ -1222,11 +1234,11 @@
   // viewer's own timezone. fmtDate()/fmtDateShort() below render every displayed timestamp
   // in this same KST timezone too, so the whole page runs on one single clock.
   function dayKey(ts) {
-    var d = toKST(ts);
+    var d = toKSTDay(ts);
     return d.getUTCFullYear() + "-" + d.getUTCMonth() + "-" + d.getUTCDate();
   }
   function dayLabel(ts) {
-    var d = toKST(ts);
+    var d = toKSTDay(ts);
     return (d.getUTCMonth() + 1) + "/" + d.getUTCDate();
   }
   // Collapses multiple same-hour points down to one (the latest value seen in that
