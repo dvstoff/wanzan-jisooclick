@@ -1067,6 +1067,420 @@
       }
     },
     {
+      "ts": "2026-08-27T15:09:43.438Z",
+      "values": {
+        "ktown4u_echo": {
+          "set2cd": 7715,
+          "photobook": 3646,
+          "nfc": 6302,
+          "vinyl": 1192
+        },
+        "ktown4u_stardust": {
+          "set2cd": 2201,
+          "vinyl": 368,
+          "nfc": 1893,
+          "photobook": 1100
+        },
+        "yetimall_echo": {
+          "main": 5350
+        },
+        "yetimall_stardust": {
+          "main": 1508
+        }
+      }
+    },
+    {
+      "ts": "2026-08-27T15:20:07.340Z",
+      "values": {
+        "ktown4u_echo": {
+          "set2cd": 7729,
+          "photobook": 3652,
+          "nfc": 6317,
+          "vinyl": 1194
+        },
+        "ktown4u_stardust": {
+          "set2cd": 2202,
+          "vinyl": 369,
+          "nfc": 1897,
+          "photobook": 1110
+        },
+        "yetimall_echo": {
+          "main": 5361
+        },
+        "yetimall_stardust": {
+          "main": 1511
+        }
+      }
+    },
+    {
+      "ts": "2026-08-27T16:04:25.892Z",
+      "values": {
+        "ktown4u_echo": {
+          "set2cd": 7762,
+          "photobook": 3663,
+          "nfc": 6347,
+          "vinyl": 1197
+        },
+        "ktown4u_stardust": {
+          "set2cd": 2216,
+          "vinyl": 374,
+          "nfc": 1919,
+          "photobook": 1115
+        },
+        "yetimall_echo": {
+          "main": 5406
+        },
+        "yetimall_stardust": {
+          "main": 1513
+        }
+      }
+    },
+    {
+      "ts": "2026-08-27T17:10:02.290Z",
+      "values": {
+        "ktown4u_echo": {
+          "set2cd": 7792,
+          "photobook": 3700,
+          "nfc": 6378,
+          "vinyl": 1201
+        },
+        "ktown4u_stardust": {
+          "set2cd": 2225,
+          "vinyl": 374,
+          "nfc": 1927,
+          "photobook": 1118
+        },
+        "yetimall_echo": {
+          "main": 5419
+        },
+        "yetimall_stardust": {
+          "main": 1514
+        }
+      }
+    },
+    {
+      "ts": "2026-08-27T18:09:35.228Z",
+      "values": {
+        "ktown4u_echo": {
+          "set2cd": 7812,
+          "photobook": 3706,
+          "nfc": 6393,
+          "vinyl": 1207
+        },
+        "ktown4u_stardust": {
+          "set2cd": 2232,
+          "vinyl": 374,
+          "nfc": 1930,
+          "photobook": 1120
+        },
+        "yetimall_echo": {
+          "main": 5430
+        },
+        "yetimall_stardust": {
+          "main": 1514
+        }
+      }
+    },
+    {
+      "ts": "2026-08-27T19:09:41.994Z",
+      "values": {
+        "ktown4u_echo": {
+          "set2cd": 7825,
+          "photobook": 3708,
+          "nfc": 6400,
+          "vinyl": 1207
+        },
+        "ktown4u_stardust": {
+          "set2cd": 2232,
+          "vinyl": 374,
+          "nfc": 1931,
+          "photobook": 1120
+        },
+        "yetimall_echo": {
+          "main": 5440
+        },
+        "yetimall_stardust": {
+          "main": 1514
+        }
+      }
+    },
+    {
+      "ts": "2026-08-27T20:09:49.753Z",
+      "values": {
+        "ktown4u_echo": {
+          "set2cd": 7826,
+          "photobook": 3714,
+          "nfc": 6409,
+          "vinyl": 1207
+        },
+        "ktown4u_stardust": {
+          "set2cd": 2232,
+          "vinyl": 374,
+          "nfc": 1932,
+          "photobook": 1122
+        },
+        "yetimall_echo": {
+          "main": 5441
+        },
+        "yetimall_stardust": {
+          "main": 1514
+        }
+      }
+    },
+    {
+      "ts": "2026-08-27T21:09:48.645Z",
+      "values": {
+        "ktown4u_echo": {
+          "set2cd": 7829,
+          "photobook": 3714,
+          "nfc": 6409,
+          "vinyl": 1207
+        },
+        "ktown4u_stardust": {
+          "set2cd": 2232,
+          "vinyl": 374,
+          "nfc": 1932,
+          "photobook": 1123
+        },
+        "yetimall_echo": {
+          "main": 5441
+        },
+        "yetimall_stardust": {
+          "main": 1514
+        }
+      }
+    },
+    {
+      "ts": "2026-08-27T22:09:53.557Z",
+      "values": {
+        "ktown4u_echo": {
+          "set2cd": 7829,
+          "photobook": 3714,
+          "nfc": 6410,
+          "vinyl": 1207
+        },
+        "ktown4u_stardust": {
+          "set2cd": 2233,
+          "vinyl": 374,
+          "nfc": 1932,
+          "photobook": 1123
+        },
+        "yetimall_echo": {
+          "main": 5442
+        },
+        "yetimall_stardust": {
+          "main": 1514
+        }
+      }
+    },
+    {
+      "ts": "2026-08-27T23:09:51.732Z",
+      "values": {
+        "ktown4u_echo": {
+          "set2cd": 7831,
+          "photobook": 3716,
+          "nfc": 6412,
+          "vinyl": 1207
+        },
+        "ktown4u_stardust": {
+          "set2cd": 2234,
+          "vinyl": 374,
+          "nfc": 1932,
+          "photobook": 1123
+        },
+        "yetimall_echo": {
+          "main": 5442
+        },
+        "yetimall_stardust": {
+          "main": 1514
+        }
+      }
+    },
+    {
+      "ts": "2026-08-28T00:10:06.690Z",
+      "values": {
+        "ktown4u_echo": {
+          "set2cd": 7837,
+          "photobook": 3716,
+          "nfc": 6415,
+          "vinyl": 1210
+        },
+        "ktown4u_stardust": {
+          "set2cd": 2236,
+          "vinyl": 375,
+          "nfc": 1932,
+          "photobook": 1123
+        },
+        "yetimall_echo": {
+          "main": 5443
+        },
+        "yetimall_stardust": {
+          "main": 1518
+        }
+      }
+    },
+    {
+      "ts": "2026-08-28T01:09:47.737Z",
+      "values": {
+        "ktown4u_echo": {
+          "set2cd": 7856,
+          "photobook": 3723,
+          "nfc": 6427,
+          "vinyl": 1212
+        },
+        "ktown4u_stardust": {
+          "set2cd": 2239,
+          "vinyl": 376,
+          "nfc": 1939,
+          "photobook": 1123
+        },
+        "yetimall_echo": {
+          "main": 5454
+        },
+        "yetimall_stardust": {
+          "main": 1518
+        }
+      }
+    },
+    {
+      "ts": "2026-08-28T01:21:17.280Z",
+      "values": {
+        "ktown4u_echo": {
+          "set2cd": 7859,
+          "photobook": 3724,
+          "nfc": 6429,
+          "vinyl": 1212
+        },
+        "ktown4u_stardust": {
+          "set2cd": 2241,
+          "vinyl": 376,
+          "nfc": 1939,
+          "photobook": 1123
+        },
+        "yetimall_echo": {
+          "main": 5465
+        },
+        "yetimall_stardust": {
+          "main": 1528
+        }
+      }
+    },
+    {
+      "ts": "2026-08-28T02:09:54.210Z",
+      "values": {
+        "ktown4u_echo": {
+          "set2cd": 7884,
+          "photobook": 3728,
+          "nfc": 6455,
+          "vinyl": 1213
+        },
+        "ktown4u_stardust": {
+          "set2cd": 2244,
+          "vinyl": 377,
+          "nfc": 1942,
+          "photobook": 1124
+        },
+        "yetimall_echo": {
+          "main": 5495
+        },
+        "yetimall_stardust": {
+          "main": 1528
+        }
+      }
+    },
+    {
+      "ts": "2026-08-28T03:09:42.952Z",
+      "values": {
+        "ktown4u_echo": {
+          "set2cd": 7907,
+          "photobook": 3754,
+          "nfc": 6486,
+          "vinyl": 1215
+        },
+        "ktown4u_stardust": {
+          "set2cd": 2248,
+          "vinyl": 378,
+          "nfc": 1945,
+          "photobook": 1125
+        },
+        "yetimall_echo": {
+          "main": 5607
+        },
+        "yetimall_stardust": {
+          "main": 1550
+        }
+      }
+    },
+    {
+      "ts": "2026-08-28T04:09:35.562Z",
+      "values": {
+        "ktown4u_echo": {
+          "set2cd": 7925,
+          "photobook": 3760,
+          "nfc": 6512,
+          "vinyl": 1218
+        },
+        "ktown4u_stardust": {
+          "set2cd": 2252,
+          "vinyl": 380,
+          "nfc": 1952,
+          "photobook": 1133
+        },
+        "yetimall_echo": {
+          "main": 5635
+        },
+        "yetimall_stardust": {
+          "main": 1578
+        }
+      }
+    },
+    {
+      "ts": "2026-08-28T05:09:41.100Z",
+      "values": {
+        "ktown4u_echo": {
+          "set2cd": 7954,
+          "photobook": 3780,
+          "nfc": 6526,
+          "vinyl": 1218
+        },
+        "ktown4u_stardust": {
+          "set2cd": 2260,
+          "vinyl": 382,
+          "nfc": 1956,
+          "photobook": 1137
+        },
+        "yetimall_echo": {
+          "main": 5683
+        },
+        "yetimall_stardust": {
+          "main": 1596
+        }
+      }
+    },
+    {
+      "ts": "2026-08-28T06:09:28.673Z",
+      "values": {
+        "ktown4u_echo": {
+          "set2cd": 7994,
+          "photobook": 3799,
+          "nfc": 6563,
+          "vinyl": 1222
+        },
+        "ktown4u_stardust": {
+          "set2cd": 2267,
+          "vinyl": 385,
+          "nfc": 1958,
+          "photobook": 1139
+        },
+        "yetimall_echo": {
+          "main": 5759
+        },
+        "yetimall_stardust": {
+          "main": 1612
+        }
+      }
+    },
+    {
       "ts": "2026-08-28T07:10:13.386Z",
       "values": {
         "ktown4u_echo": {
