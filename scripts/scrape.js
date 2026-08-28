@@ -61,6 +61,7 @@ const CHANNELS = [
     url: "https://www.namilmarket.com/2608jslz0825-2",
     itemIds: ["main"],
     parse: parseNamilmarket,
+    retry: true,
   },
   {
     id: "ktown4u_jp",

@@ -80,6 +80,17 @@
   .wrap { max-width: 1000px; margin: 0 auto; padding: 40px 24px 96px; }
 
   /* header */
+  .lang-switch {
+    display: inline-flex; float: right; border: 1px solid var(--line-strong); border-radius: 10px;
+    overflow: hidden; margin-bottom: 8px;
+  }
+  .lang-switch button {
+    appearance: none; border: none; background: var(--surface); color: var(--ink-dim);
+    font: inherit; font-size: 12px; font-weight: 700; padding: 6px 12px; cursor: pointer;
+    border-right: 1px solid var(--line);
+  }
+  .lang-switch button:last-child { border-right: none; }
+  .lang-switch button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
   .eyebrow {
     font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
     color: var(--accent); margin: 0 0 10px;
@@ -101,6 +112,21 @@
   }
   .chip b { color: var(--ink); font-weight: 700; }
   .chip.accent { border-color: transparent; background: var(--accent-wash); color: var(--accent); }
+
+  /* update notice banner */
+  .notice-banner {
+    display: none; align-items: flex-start; gap: 10px;
+    background: var(--accent-wash); border: 1px solid var(--accent); border-radius: 12px;
+    padding: 12px 14px; margin-bottom: 20px; font-size: 13px; line-height: 1.5; color: var(--ink-dim);
+  }
+  .notice-banner .nb-icon { flex-shrink: 0; font-size: 15px; }
+  .notice-banner .nb-body { flex: 1; }
+  .notice-banner .nb-date { font-weight: 700; color: var(--accent); margin-right: 6px; }
+  .notice-banner .nb-close {
+    flex-shrink: 0; appearance: none; border: none; background: none; cursor: pointer;
+    color: var(--ink-mute); font-size: 16px; line-height: 1; padding: 2px 4px; border-radius: 6px;
+  }
+  .notice-banner .nb-close:hover { background: rgba(0,0,0,0.06); color: var(--ink); }
   .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--good); flex: none; }
   .chip a { color: inherit; text-decoration: none; border-bottom: 1px dotted var(--ink-mute); }
 
@@ -293,6 +319,47 @@
   .daily-bar[aria-pressed="true"] .db-label { color: var(--ink-dim); font-weight: 600; }
   .daily-bar .db-tag { font-size: 10px; color: var(--ink-mute); }
 
+  /* hero row: core sales total (main, wide) + ask-a-question (side, compact but eye-catching) */
+  .hero-row { display: grid; grid-template-columns: 1fr 280px; gap: 20px; align-items: start; margin-bottom: 36px; }
+  .hero-side { position: sticky; top: 16px; }
+  @media (max-width: 760px) {
+    .hero-row { grid-template-columns: 1fr; margin-bottom: 28px; }
+    .hero-side { position: static; }
+  }
+
+  /* ask a question / public Q&A */
+  .ask-card {
+    background: var(--accent-wash); border: 1px solid var(--accent); border-radius: 16px;
+    padding: 16px 18px;
+  }
+  .ask-title { font-size: 13px; font-weight: 700; color: var(--accent); margin: 0 0 10px; }
+  .ask-card textarea {
+    width: 100%; font: inherit; font-size: 13px; padding: 9px 11px; border-radius: 10px;
+    border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink);
+    resize: vertical; min-height: 56px;
+  }
+  .ask-card textarea:focus, .ask-card input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .ask-row { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; align-items: stretch; }
+  .ask-row input {
+    flex: 1; font: inherit; font-size: 13px; padding: 8px 11px; border-radius: 10px;
+    border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink);
+  }
+  .ask-row .icon-btn { justify-content: center; }
+  .ask-note { font-size: 11px; color: var(--ink-mute); margin: 10px 0 0; }
+  .ask-status { font-size: 12.5px; margin: 8px 0 0; min-height: 16px; }
+  .ask-status.ok { color: var(--good); }
+  .ask-status.err { color: #c0392b; }
+  .qa-list { display: flex; flex-direction: column; gap: 10px; }
+  .qa-empty { font-size: 13px; color: var(--ink-mute); padding: 4px 2px; }
+  .qa-item {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px;
+  }
+  .qa-item .qa-q { font-size: 13.5px; font-weight: 700; color: var(--ink); }
+  .qa-item .qa-q::before { content: "Q. "; color: var(--accent); }
+  .qa-item .qa-a { font-size: 13.5px; color: var(--ink-dim); margin-top: 8px; }
+  .qa-item .qa-a::before { content: "A. "; color: var(--accent); font-weight: 700; }
+  .qa-item .qa-date { font-size: 11px; color: var(--ink-mute); margin-top: 8px; }
+
   /* forecast */
   .forecast-card {
     background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
@@ -349,60 +416,90 @@
 <div id="watermarkOverlay"></div>
 <div id="gateOverlay">
   <div class="gate-card">
-    <h2>需要密码</h2>
-    <p>这个页面仅限受邀查看</p>
-    <input type="password" id="gatePassword" placeholder="输入密码" autocomplete="off">
-    <button type="button" id="gateSubmit">进入</button>
+    <h2 data-i18n="gateTitle">需要密码</h2>
+    <p data-i18n="gateSubtitle">这个页面仅限受邀查看</p>
+    <input type="password" id="gatePassword" data-i18n-placeholder="gatePlaceholder" placeholder="输入密码" autocomplete="off">
+    <button type="button" id="gateSubmit" data-i18n="gateEnter">进入</button>
     <div class="err" id="gateErr"></div>
   </div>
 </div>
 
 <div class="wrap">
 
+  <div class="notice-banner" id="noticeBanner"></div>
+
+  <div class="lang-switch">
+    <button type="button" data-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-lang="en" aria-pressed="false">EN</button>
+  </div>
+
   <p class="eyebrow">Sales Tracker · Multi-Channel</p>
-  <h1>JISOO — 单曲专辑《CLICK》预售销量</h1>
-  <p class="subtitle">跨平台、跨站子追踪《CLICK》预售/团购页面的销量计数。每次记录是所有渠道"同一时间"一起抓取的一批数据,所以全站合计趋势是可信的时间序列。</p>
+  <h1 data-i18n="h1">JISOO — 单曲专辑《CLICK》预售销量</h1>
+  <p class="subtitle" data-i18n="subtitle">跨平台、跨站子追踪《CLICK》预售/团购页面的销量计数。每次记录是所有渠道"同一时间"一起抓取的一批数据,所以全站合计趋势是可信的时间序列。全站所有时间均为韩国时间（KST，UTC+9）。</p>
 
   <div class="header-row">
-    <span class="chip">发行日 <b>2026-09-04</b> · <b id="dday">—</b></span>
-    <span class="chip">已接入渠道 <b id="channelCount">—</b></span>
-    <span class="chip">已记录批次 <b id="batchCount">—</b></span>
+    <span class="chip" data-i18n="chipRelease">发行日 <b>2026-09-04</b> · <b id="dday">—</b></span>
+    <span class="chip" data-i18n="chipChannels">已接入渠道 <b id="channelCount">—</b></span>
+    <span class="chip" data-i18n="chipBatches">已记录批次 <b id="batchCount">—</b></span>
+    <span class="chip accent" data-i18n="kstChip">🕐 全站时间：KST 韩国时间（UTC+9）</span>
+  </div>
+
+  <div class="hero-row">
+    <section class="hero-main">
+      <p class="section-label" data-i18n="sectionSummary">全站汇总（按站子分组）</p>
+      <div class="summary-card">
+        <div class="summary-row">
+          <div class="summary-total">
+            <div class="label" data-i18n="totalSoldLabel">目前所有平台加起来,一共卖出去</div>
+            <div class="value mono" id="grandTotal">—</div>
+          </div>
+          <div class="summary-forecast" id="summaryForecast"></div>
+        </div>
+        <div class="label" style="margin-top:14px;" data-i18n="hourlyUpdateNote">每小时自动更新一次。下面"统计口径"可以切换算法,不确定的话保持默认就好</div>
+      </div>
+      <div class="group-grid" id="groupGrid"></div>
+    </section>
+
+    <aside class="hero-side">
+      <div class="ask-card">
+        <p class="ask-title" data-i18n="sectionAsk">💬 有疑问？在这里提问</p>
+        <form id="askForm">
+          <textarea id="askQuestion" name="question" rows="3" required data-i18n-placeholder="askPlaceholder" placeholder="哪里没看懂？想统计的口径不一样？都可以问"></textarea>
+          <div class="ask-row">
+            <input type="text" id="askName" name="name" data-i18n-placeholder="askNamePlaceholder" placeholder="昵称（可选）">
+            <button type="submit" class="icon-btn primary" id="askSubmit" data-i18n="askSubmit">提交</button>
+          </div>
+          <p class="ask-note" data-i18n="askNote">提交后只有我能看到,回复了会把问题和回答一起整理进下面的"问答"里,不会直接公开你的原始留言</p>
+          <p class="ask-status" id="askStatus"></p>
+        </form>
+      </div>
+    </aside>
   </div>
 
   <section>
-    <p class="section-label">全站汇总（按站子分组）</p>
-    <div class="summary-card">
-      <div class="summary-row">
-        <div class="summary-total">
-          <div class="label">目前所有平台加起来,一共卖出去</div>
-          <div class="value mono" id="grandTotal">—</div>
-        </div>
-        <div class="summary-forecast" id="summaryForecast"></div>
-      </div>
-      <div class="label" style="margin-top:14px;">每小时自动更新一次。下面"统计口径"可以切换算法,不确定的话保持默认就好</div>
-    </div>
-    <div class="group-grid" id="groupGrid"></div>
+    <p class="section-label" data-i18n="sectionQaList">大家问过的问题</p>
+    <div class="qa-list" id="qaList"></div>
   </section>
 
   <section>
-    <p class="section-label">全站趋势</p>
+    <p class="section-label" data-i18n="sectionTrend">全站趋势</p>
 
     <div class="chart-card">
       <div class="heading">
-        <h3>每日净增</h3>
+        <h3 data-i18n="dailyGrowthTitle">每日净增</h3>
         <span class="note" id="siteDailyNote"></span>
       </div>
-      <p class="chart-hint">每根柱子是那一天卖出去的净增量,点一根柱子可以展开看那天从早到晚的详细记录</p>
+      <p class="chart-hint" data-i18n="dailyGrowthHint">每根柱子是那一天卖出去的净增量,点一根柱子可以展开看那天从早到晚的详细记录</p>
       <div class="daily-bars" id="siteDailyBars"></div>
     </div>
 
     <div class="chart-card" style="margin-top:14px;">
       <div class="heading">
-        <h3 id="siteDayDetailTitle">当日明细</h3>
+        <h3 id="siteDayDetailTitle" data-i18n="dayDetailTitle">当日明细</h3>
         <span class="note" id="siteDayDetailNote"></span>
         <button type="button" class="icon-btn" id="siteDayDetailPngBtn">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-          导出图表 PNG
+          <span data-i18n="exportPng">导出图表 PNG</span>
         </button>
       </div>
       <div class="chart-wrap" id="siteDayDetailWrap"></div>
@@ -410,11 +507,11 @@
 
     <div class="chart-card" style="margin-top:14px;">
       <div class="heading">
-        <h3>从发售至今 · 累计总量</h3>
+        <h3 data-i18n="cumulativeTitle">从发售至今 · 累计总量</h3>
         <span class="note" id="siteChartNote"></span>
         <button type="button" class="icon-btn" id="siteChartPngBtn">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-          导出图表 PNG
+          <span data-i18n="exportPng">导出图表 PNG</span>
         </button>
       </div>
       <div class="chart-wrap" id="siteChartWrap"></div>
@@ -422,29 +519,29 @@
   </section>
 
   <section>
-    <p class="section-label">预测详情（线性回归 + t 分布预测区间）</p>
+    <p class="section-label" data-i18n="sectionForecastDetail">预测详情（线性回归 + t 分布预测区间）</p>
     <div class="forecast-card" id="forecastCard"></div>
   </section>
 
   <section>
-    <p class="section-label">全站历史批次</p>
+    <p class="section-label" data-i18n="sectionSiteBatches">全站历史批次</p>
     <div class="searchbar">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <div class="field">
-        <label for="siteFromInput">从</label>
+        <label for="siteFromInput" data-i18n="from">从</label>
         <input type="datetime-local" id="siteFromInput">
       </div>
       <div class="field">
-        <label for="siteToInput">到</label>
+        <label for="siteToInput" data-i18n="to">到</label>
         <input type="datetime-local" id="siteToInput">
       </div>
-      <button type="button" class="chipbtn" data-site-preset="all" aria-pressed="true">全部</button>
-      <button type="button" class="chipbtn" data-site-preset="today" aria-pressed="false">今天</button>
-      <button type="button" class="chipbtn" data-site-preset="24h" aria-pressed="false">近 24 小时</button>
+      <button type="button" class="chipbtn" data-site-preset="all" aria-pressed="true" data-i18n="presetAll">全部</button>
+      <button type="button" class="chipbtn" data-site-preset="today" aria-pressed="false" data-i18n="presetToday">今天</button>
+      <button type="button" class="chipbtn" data-site-preset="24h" aria-pressed="false" data-i18n="preset24h">近 24 小时</button>
       <span class="spacer"></span>
       <button type="button" class="icon-btn primary" id="siteExportBtn">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
-        导出 CSV
+        <span data-i18n="exportCsv">导出 CSV</span>
       </button>
     </div>
     <div class="table-scroll">
@@ -455,33 +552,33 @@
     </div>
     <div class="table-foot">
       <span class="count" id="siteRowCount"></span>
-      <span class="count">时间均为本地时区（Asia/Shanghai）· <span style="color:var(--ink-mute)">浅色数字</span>=沿用上次结果,该渠道这次没重新查</span>
+      <span class="count" data-i18n="tzNoteSite">时间均为本地时区（Asia/Shanghai）· <span style="color:var(--ink-mute)">浅色数字</span>=沿用上次结果,该渠道这次没重新查</span>
     </div>
   </section>
 
   <section>
-    <p class="section-label">渠道明细</p>
+    <p class="section-label" data-i18n="sectionChannelDetail">渠道明细</p>
     <div id="tabsWrap"></div>
 
     <div class="header-row" style="margin:20px 0;">
-      <span class="chip accent"><span class="dot"></span>更新于 <b id="lastUpdated">—</b></span>
-      <span class="chip">记录点数 <b id="snapshotCount">—</b></span>
-      <span class="chip"><a id="sourceLink" href="#" target="_blank" rel="noopener">查看原页面 ↗</a></span>
+      <span class="chip accent"><span class="dot"></span><span data-i18n="updatedAt">更新于</span> <b id="lastUpdated">—</b></span>
+      <span class="chip"><span data-i18n="snapshotCountLabel">记录点数</span> <b id="snapshotCount">—</b></span>
+      <span class="chip"><a id="sourceLink" href="#" target="_blank" rel="noopener" data-i18n="viewSource">查看原页面 ↗</a></span>
     </div>
 
     <div class="controls">
       <div class="toggle-group">
-        <span class="label">统计口径</span>
-        <div class="segmented" role="group" aria-label="统计口径">
-          <button type="button" data-convention="physical" aria-pressed="true">物理张数（2CD ×2）</button>
-          <button type="button" data-convention="raw" aria-pressed="false">原始订单数</button>
+        <span class="label" data-i18n="conventionLabel">统计口径</span>
+        <div class="segmented" role="group" aria-label="统计口径" data-i18n-aria-label="conventionLabel">
+          <button type="button" data-convention="physical" aria-pressed="true" data-i18n="conventionPhysical">物理张数（2CD ×2）</button>
+          <button type="button" data-convention="raw" aria-pressed="false" data-i18n="conventionRaw">原始订单数</button>
         </div>
       </div>
       <div class="toggle-group">
-        <span class="label">黑胶 Vinyl Ver.</span>
-        <div class="segmented" role="group" aria-label="是否含黑胶">
-          <button type="button" data-vinyl="exclude" aria-pressed="true">不含（发货较晚,初动存疑）</button>
-          <button type="button" data-vinyl="include" aria-pressed="false">含</button>
+        <span class="label" data-i18n="vinylLabel">黑胶 Vinyl Ver.</span>
+        <div class="segmented" role="group" aria-label="是否含黑胶" data-i18n-aria-label="vinylLabel">
+          <button type="button" data-vinyl="exclude" aria-pressed="true" data-i18n="vinylExclude">不含（发货较晚,初动存疑）</button>
+          <button type="button" data-vinyl="include" aria-pressed="false" data-i18n="vinylInclude">含</button>
         </div>
       </div>
     </div>
@@ -494,19 +591,19 @@
 
     <div class="stat-grid">
       <div class="stat-tile">
-        <div class="label">距发行日 (2026-09-04)</div>
+        <div class="label" data-i18n="statDdayLabel">距发行日 (2026-09-04)</div>
         <div class="value" id="statDday">—</div>
-        <div class="sub">追踪窗口将在发行日截止</div>
+        <div class="sub" data-i18n="statDdaySub">追踪窗口将在发行日截止</div>
       </div>
       <div class="stat-tile">
-        <div class="label">近 24 小时净增</div>
-        <div class="value dim" id="statDelta24h">数据不足</div>
-        <div class="sub" id="statDelta24hSub">需要至少两个相隔 24 小时的记录点</div>
+        <div class="label" data-i18n="statDelta24hLabel">近 24 小时净增</div>
+        <div class="value dim" id="statDelta24h" data-i18n="statNotEnough">数据不足</div>
+        <div class="sub" id="statDelta24hSub" data-i18n="statDelta24hSub">需要至少两个相隔 24 小时的记录点</div>
       </div>
       <div class="stat-tile">
-        <div class="label">已记录时间跨度</div>
+        <div class="label" data-i18n="statSpanLabel">已记录时间跨度</div>
         <div class="value dim" id="statSpan">—</div>
-        <div class="sub">自动化每小时抓取尚未启用</div>
+        <div class="sub" data-i18n="statSpanSub">自动化每小时抓取尚未启用</div>
       </div>
     </div>
 
@@ -514,20 +611,20 @@
       <div class="searchbar">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <div class="field">
-          <label for="fromInput">从</label>
+          <label for="fromInput" data-i18n="from">从</label>
           <input type="datetime-local" id="fromInput">
         </div>
         <div class="field">
-          <label for="toInput">到</label>
+          <label for="toInput" data-i18n="to">到</label>
           <input type="datetime-local" id="toInput">
         </div>
-        <button type="button" class="chipbtn" data-preset="all" aria-pressed="true">全部</button>
-        <button type="button" class="chipbtn" data-preset="today" aria-pressed="false">今天</button>
-        <button type="button" class="chipbtn" data-preset="24h" aria-pressed="false">近 24 小时</button>
+        <button type="button" class="chipbtn" data-preset="all" aria-pressed="true" data-i18n="presetAll">全部</button>
+        <button type="button" class="chipbtn" data-preset="today" aria-pressed="false" data-i18n="presetToday">今天</button>
+        <button type="button" class="chipbtn" data-preset="24h" aria-pressed="false" data-i18n="preset24h">近 24 小时</button>
         <span class="spacer"></span>
         <button type="button" class="icon-btn primary" id="exportBtn">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
-          导出 CSV
+          <span data-i18n="exportCsv">导出 CSV</span>
         </button>
       </div>
       <div class="table-scroll">
@@ -538,17 +635,17 @@
       </div>
       <div class="table-foot">
         <span class="count" id="rowCount"></span>
-        <span class="count">时间均为本地时区（Asia/Shanghai）</span>
+        <span class="count" data-i18n="tzNote">时间均为本地时区（Asia/Shanghai）</span>
       </div>
     </div>
   </section>
 
   <footer>
-    <p><b>渠道 = 平台 × 站子。</b>目前接入 6 个渠道,分属 2 组 + 1 个参考渠道:<b>KimJisooEcho 站子</b>(Ktown4u eve_no=44509156 + Yetimall gid=32426)、<b>StarDust 站子</b>(Ktown4u eve_no=44509161 + Yetimall gid=32425 + Namilmarket,三者都属于 StarDust 站子)。全站合计 = 两组小计之和,组小计 = 组内各渠道之和。<b>Ktown4u 日本连合</b>单独列为"参考渠道"——这是日本地区的销量,币种是日元,不计入中国销量汇总,只是放出来给你参考对比。</p>
-    <p><b>关于口径：</b>各渠道展示的都是该电商页面自带的原始计数器（Ktown4u"售销记录" / Yetimall"已售件数" / Namilmarket"已售" / 日本Ktown4u"注文履歴"）,不是 Hanteo / Circle Chart 官方初动数据,不同渠道计数逻辑互相独立。Ktown4u"2CD 套装"含 NFC 版 + Photobook 版两张实体,按物理张数口径计为 ×2；黑胶版发货较晚,是否计入本轮初动请自行判断,默认不计入。Yetimall 每个链接含两种专辑版本可选,"已售"为该商品链接下的合计数,未做版本拆分（需登录该平台账号才能看到分版本数据）。Namilmarket 当前数字对应默认选中的 PB ver.,NFC ver. 分版本销量尚未核实。</p>
-    <p><b>未接入：</b>Pinky-pop（微信小程序团购链接）需要在微信内打开、可能还要登录才能看到数据,操作成本较高,目前不接入,如果之后想加可以再讨论。</p>
-    <p id="genNote">数据由人工核对后录入,自动定时抓取上线后将按小时累积,且会保证所有渠道在同一批次里一起记录。</p>
-    <p style="font-weight:700;color:var(--ink-dim);">由 wanzan 制作 · © 2026</p>
+    <p data-i18n="footer1"><b>渠道 = 平台 × 站子。</b>目前接入 6 个渠道,分属 2 组 + 1 个参考渠道:<b>KimJisooEcho 站子</b>(Ktown4u eve_no=44509156 + Yetimall gid=32426)、<b>StarDust 站子</b>(Ktown4u eve_no=44509161 + Yetimall gid=32425 + Namilmarket,三者都属于 StarDust 站子)。全站合计 = 两组小计之和,组小计 = 组内各渠道之和。<b>Ktown4u 日本连合</b>单独列为"参考渠道"——这是日本地区的销量,币种是日元,不计入中国销量汇总,只是放出来给你参考对比。</p>
+    <p data-i18n="footer2"><b>关于口径：</b>各渠道展示的都是该电商页面自带的原始计数器（Ktown4u"售销记录" / Yetimall"已售件数" / Namilmarket"已售" / 日本Ktown4u"注文履歴"）,不是 Hanteo / Circle Chart 官方初动数据,不同渠道计数逻辑互相独立。Ktown4u"2CD 套装"含 NFC 版 + Photobook 版两张实体,按物理张数口径计为 ×2；黑胶版发货较晚,是否计入本轮初动请自行判断,默认不计入。Yetimall 每个链接含两种专辑版本可选,"已售"为该商品链接下的合计数,未做版本拆分（需登录该平台账号才能看到分版本数据）。Namilmarket 当前数字对应默认选中的 PB ver.,NFC ver. 分版本销量尚未核实。</p>
+    <p data-i18n="footer3"><b>未接入：</b>Pinky-pop（微信小程序团购链接）需要在微信内打开、可能还要登录才能看到数据,操作成本较高,目前不接入,如果之后想加可以再讨论。</p>
+    <p id="genNote" data-i18n="footer4">数据由人工核对后录入,自动定时抓取上线后将按小时累积,且会保证所有渠道在同一批次里一起记录。</p>
+    <p style="font-weight:700;color:var(--ink-dim);" data-i18n="footerCredit">由 wanzan 制作 · © 2026</p>
   </footer>
 
 </div>
@@ -558,22 +655,25 @@
   "use strict";
 
   // ---- seed data ----
+  // labelEn/subEn/nameEn are the English variants shown when LANG === "en" (see L() below);
+  // omit them on anything that's already language-neutral (proper nouns, "Ver.", "(JPY)").
   var GROUPS = [
-    { id: "echo",      label: "KimJisooEcho 站子", channelIds: ["ktown4u_echo", "yetimall_echo"] },
-    { id: "stardust",  label: "StarDust 站子",     channelIds: ["ktown4u_stardust", "yetimall_stardust", "namilmarket_main"] }
+    { id: "echo",      label: "KimJisooEcho 站子", labelEn: "KimJisooEcho Site", channelIds: ["ktown4u_echo", "yetimall_echo"] },
+    { id: "stardust",  label: "StarDust 站子",     labelEn: "StarDust Site",     channelIds: ["ktown4u_stardust", "yetimall_stardust", "namilmarket_main"] }
   ];
   // channels with group:"reference" are shown but NEVER summed into any total —
   // used for the Japan Ktown4u link, which is JP sales, not China sales.
   var REFERENCE_GROUP_LABEL = "参考渠道（不计入中国销量汇总）";
+  var REFERENCE_GROUP_LABEL_EN = "Reference channel (not counted in the China total)";
 
   var KTOWN4U_ITEMS_ECHO = [
-    { id: "set2cd",    name: "2CD 套装（NFC+Photobook）", price: 214.00, units: 2, vinyl: false },
+    { id: "set2cd",    name: "2CD 套装（NFC+Photobook）", nameEn: "2CD Set (NFC+Photobook)", price: 214.00, units: 2, vinyl: false },
     { id: "photobook", name: "Photobook Ver.",             price: 63.00,  units: 1, vinyl: false },
     { id: "nfc",       name: "Baby Bear NFC Ver.",         price: 151.00, units: 1, vinyl: false },
     { id: "vinyl",     name: "Vinyl Ver.",                 price: 188.00, units: 1, vinyl: true  }
   ];
   var KTOWN4U_ITEMS_STARDUST = [
-    { id: "set2cd",    name: "2CD 套装（NFC+Photobook）", price: 214.00, units: 2, vinyl: false },
+    { id: "set2cd",    name: "2CD 套装（NFC+Photobook）", nameEn: "2CD Set (NFC+Photobook)", price: 214.00, units: 2, vinyl: false },
     { id: "vinyl",     name: "Vinyl Ver.",                 price: 188.00, units: 1, vinyl: true  },
     { id: "nfc",       name: "Baby Bear NFC Ver.",         price: 151.00, units: 1, vinyl: false },
     { id: "photobook", name: "Photobook Ver.",             price: 63.00,  units: 1, vinyl: false }
@@ -593,20 +693,20 @@
     {
       id: "yetimall_echo", group: "echo", label: "Yetimall", sub: "KimJisooEcho",
       sourceUrl: "https://m.yetimall.store/h5/#/goods?gid=32426",
-      items: [{ id: "main", name: "0825平台特典合集（两版本合计）", price: 62.00, units: 1, vinyl: false }]
+      items: [{ id: "main", name: "0825平台特典合集（两版本合计）", nameEn: "0825 platform bonus bundle (both versions combined)", price: 62.00, units: 1, vinyl: false }]
     },
     {
       id: "yetimall_stardust", group: "stardust", label: "Yetimall", sub: "StarDust",
       sourceUrl: "https://m.yetimall.store/h5/#/goods?gid=32425",
-      items: [{ id: "main", name: "0825平台特典合集（两版本合计）", price: 62.00, units: 1, vinyl: false }]
+      items: [{ id: "main", name: "0825平台特典合集（两版本合计）", nameEn: "0825 platform bonus bundle (both versions combined)", price: 62.00, units: 1, vinyl: false }]
     },
     {
       id: "namilmarket_main", group: "stardust", label: "Namilmarket", sub: "StarDust",
       sourceUrl: "https://www.namilmarket.com/2608jslz0825-2",
-      items: [{ id: "main", name: "PB ver.（NFC ver. 未核实）", price: 63.00, units: 1, vinyl: false }]
+      items: [{ id: "main", name: "PB ver.（NFC ver. 未核实）", nameEn: "PB ver. (NFC ver. unverified)", price: 63.00, units: 1, vinyl: false }]
     },
     {
-      id: "ktown4u_jp", group: "reference", label: "Ktown4u", sub: "日本连合",
+      id: "ktown4u_jp", group: "reference", label: "Ktown4u", sub: "日本连合", subEn: "Japan Union",
       sourceUrl: "https://jp.ktown4u.com/eventinfo?eve_no=42960704&biz_no=783",
       items: [
         { id: "photobook", name: "Photobook Ver.（JPY）", price: 1664, units: 1, vinyl: false },
@@ -634,9 +734,386 @@
       }
     }
   ];
-  var RELEASE_DATE = "2026-09-04T00:00:00+08:00";
+  var RELEASE_DATE = "2026-09-04T00:00:00+09:00"; // KST midnight — the page's single canonical timezone
   var WATERMARK_TEXT = "wanzan";
   var PASSWORD_HASH = "ff4b467b7a593047c46682ecdbf6da36b3f3bb4b50d35f08f17f751ef5f15531";
+
+  // ---- i18n ----
+  var LANG = (function () {
+    try { return localStorage.getItem("jisoo_lang") === "en" ? "en" : "zh"; } catch (e) { return "zh"; }
+  })();
+  // Reads a bilingual field off a data object, e.g. L(channel, "label") reads
+  // channel.labelEn when LANG is "en" and that field is set, else channel.label —
+  // used for CHANNELS/GROUPS/items, which carry their English text as "<field>En".
+  function L(obj, key) {
+    if (LANG === "en" && obj[key + "En"]) return obj[key + "En"];
+    return obj[key];
+  }
+  var STRINGS = {
+    zh: {
+      pageTitle: "JISOO CLICK · 销量追踪",
+      h1: "JISOO — 单曲专辑《CLICK》预售销量",
+      subtitle: "跨平台、跨站子追踪《CLICK》预售/团购页面的销量计数。每次记录是所有渠道“同一时间”一起抓取的一批数据,所以全站合计趋势是可信的时间序列。全站所有时间均为韩国时间（KST，UTC+9）。",
+      kstChip: "🕐 全站时间：KST 韩国时间（UTC+9）",
+      sectionAsk: "有疑问？在这里提问",
+      askPlaceholder: "哪里没看懂？想统计的口径不一样？都可以问",
+      askNamePlaceholder: "昵称（可选）",
+      askSubmit: "提交",
+      askNote: "提交后只有我能看到,回复了会把问题和回答一起整理进下面的“问答”里,不会直接公开你的原始留言",
+      askSending: "提交中…",
+      askOk: "提交成功,谢谢提问！我看到后会尽快回复,回答了会出现在下面",
+      askErr: "提交失败,可以稍后再试一次,或者换个方式联系我",
+      askEmpty: "请先写点什么再提交",
+      sectionQaList: "大家问过的问题",
+      qaEmpty: "还没有公开的问答,欢迎在上面提问,我回复了会出现在这里",
+      chipRelease: "发行日 <b>2026-09-04</b> · <b id=\"dday\">—</b>",
+      chipChannels: "已接入渠道 <b id=\"channelCount\">—</b>",
+      chipBatches: "已记录批次 <b id=\"batchCount\">—</b>",
+      sectionSummary: "全站汇总（按站子分组）",
+      totalSoldLabel: "目前所有平台加起来,一共卖出去",
+      hourlyUpdateNote: "每小时自动更新一次。下面“统计口径”可以切换算法,不确定的话保持默认就好",
+      sectionTrend: "全站趋势",
+      dailyGrowthTitle: "每日净增",
+      dailyGrowthHint: "每根柱子是那一天卖出去的净增量,点一根柱子可以展开看那天从早到晚的详细记录",
+      dayDetailTitle: "当日明细",
+      exportPng: "导出图表 PNG",
+      cumulativeTitle: "从发售至今 · 累计总量",
+      sectionForecastDetail: "预测详情（线性回归 + t 分布预测区间）",
+      sectionSiteBatches: "全站历史批次",
+      from: "从（KST）",
+      to: "到（KST）",
+      presetAll: "全部",
+      presetToday: "今天",
+      preset24h: "近 24 小时",
+      exportCsv: "导出 CSV",
+      tzNoteSite: "全站统一使用韩国时间（KST，UTC+9）,与下方“每日净增”的天数划分一致 · <span style=\"color:var(--ink-mute)\">浅色数字</span>=沿用上次结果,该渠道这次没重新查",
+      sectionChannelDetail: "渠道明细",
+      updatedAt: "更新于",
+      snapshotCountLabel: "记录点数",
+      viewSource: "查看原页面 ↗",
+      conventionLabel: "统计口径",
+      conventionPhysical: "物理张数（2CD ×2）",
+      conventionRaw: "原始订单数",
+      vinylLabel: "黑胶 Vinyl Ver.",
+      vinylExclude: "不含（发货较晚,初动存疑）",
+      vinylInclude: "含",
+      statDdayLabel: "距发行日 (2026-09-04)",
+      statDdaySub: "追踪窗口将在发行日截止",
+      statDelta24hLabel: "近 24 小时净增",
+      statNotEnough: "数据不足",
+      statDelta24hSub: "需要至少两个相隔 24 小时的记录点",
+      statSpanLabel: "已记录时间跨度",
+      statSpanSub: "自动化每小时抓取尚未启用",
+      tzNote: "全站统一使用韩国时间（KST，UTC+9）",
+      footer1: "<b>渠道 = 平台 × 站子。</b>目前接入 6 个渠道,分属 2 组 + 1 个参考渠道:<b>KimJisooEcho 站子</b>(Ktown4u eve_no=44509156 + Yetimall gid=32426)、<b>StarDust 站子</b>(Ktown4u eve_no=44509161 + Yetimall gid=32425 + Namilmarket,三者都属于 StarDust 站子)。全站合计 = 两组小计之和,组小计 = 组内各渠道之和。<b>Ktown4u 日本连合</b>单独列为“参考渠道”——这是日本地区的销量,币种是日元,不计入中国销量汇总,只是放出来给你参考对比。",
+      footer2: "<b>关于口径：</b>各渠道展示的都是该电商页面自带的原始计数器（Ktown4u“售销记录” / Yetimall“已售件数” / Namilmarket“已售” / 日本Ktown4u“注文履歴”）,不是 Hanteo / Circle Chart 官方初动数据,不同渠道计数逻辑互相独立。Ktown4u“2CD 套装”含 NFC 版 + Photobook 版两张实体,按物理张数口径计为 ×2；黑胶版发货较晚,是否计入本轮初动请自行判断,默认不计入。Yetimall 每个链接含两种专辑版本可选,“已售”为该商品链接下的合计数,未做版本拆分（需登录该平台账号才能看到分版本数据）。Namilmarket 当前数字对应默认选中的 PB ver.,NFC ver. 分版本销量尚未核实。",
+      footer3: "<b>未接入：</b>Pinky-pop（微信小程序团购链接）需要在微信内打开、可能还要登录才能看到数据,操作成本较高,目前不接入,如果之后想加可以再讨论。",
+      footer4: "数据由人工核对后录入,自动定时抓取上线后将按小时累积,且会保证所有渠道在同一批次里一起记录。",
+      footerCredit: "由 wanzan 制作 · © 2026",
+      gateTitle: "需要密码",
+      gateSubtitle: "这个页面仅限受邀查看",
+      gatePlaceholder: "输入密码",
+      gateEnter: "进入",
+      gateWrong: "密码不对,再试一次",
+      released: "已发行",
+      dayFirstTag: "首日不完整",
+      dayOngoingTag: "进行中",
+      daysUnit: "天",
+      noRecordsYet: "还没有记录,积累数据后会显示每日净增",
+      dayDetailNoSelection: "当日明细",
+      dayDetailTitleFmt: "{m}月{d}日明细",
+      recordPointsUnit: "个记录点",
+      chartNotEnough: "目前只有 {n} 个记录点，趋势线会在积累更多批次数据后自动出现",
+      siteTotal: "全站合计",
+      noRecordsInRange: "所选时间段内没有记录",
+      firstRecord: "首次记录",
+      recordsCountFmt: "{n} / {m} 条记录",
+      colTime: "时间",
+      colSiteTotal: "全站合计",
+      colDelta: "较上批次净增",
+      colChannelTotal: "合计（当前口径）",
+      heroNoRecords: "暂无记录",
+      heroTotalLabel: "合计销量",
+      conventionPhysicalShort: "物理张数口径",
+      conventionRawShort: "原始订单口径",
+      vinylIncludeShort: "含黑胶",
+      vinylExcludeShort: "不含黑胶",
+      asOf: "截至",
+      statNeedTwoPoints: "需要至少两个相隔一段时间的记录点",
+      lessThanHour: "< 1 小时",
+      hoursUnit: "小时",
+      compareAgainst: "对比",
+      noDataYet: "暂无数据",
+      viewChannelSource: "查看{label}（{sub}）原页面 ↗",
+      fcEmpty: "数据点还不够（至少需要 2 个近 24 小时内的小时级记录点),积累更多批次后会自动出现预测",
+      fcBadge: "预测",
+      fcBadgeWithDate: "预测 · {date} 发行日",
+      fcAbout: "约",
+      fcNotEnoughData: "数据点还不够,积累更多批次后出现",
+      fcExpired: "已过发行日截止时间",
+      fcRange95: "95% 预测区间",
+      fcLinearNote: "按近 24 小时增速线性外推,仅供参考",
+      fcSlowing: "，增速在放缓",
+      fcSpeeding: "，增速在加快",
+      fcSeeDetail: "，详情见下方“预测详情”",
+      fcRecent24h: "近 24 小时增速",
+      fcPerHour: "/小时",
+      fcAboutPerDay: "约 {v} /天 · 基于 {n} 个记录点",
+      fcLinearExtrap: "线性回归外推 · 预计发行日全站合计",
+      fcExtrapNote: "按近 24 小时增速外推到 {date}",
+      fcNoInterval: "（记录点太少,算不出置信区间)",
+      fcR2Label: "拟合优度 R²（越接近 1 说明增速越匀速）",
+      fcR2GoodNote: "近 24 小时增速比较匀速,外推相对可信",
+      fcR2BadNote: "近 24 小时增速本身波动较大,外推仅作粗略参考",
+      fcTNoteLabel: "t 分布预测区间参数",
+      fcTNoteFmt: "t({df}) = {t} · 样本 n={n}（自由度越小,区间越宽,越诚实地反映数据还不够多）",
+      fcTNoteSub: "区间用的是标准简单线性回归“预测区间”公式,不是仅凭正态近似的 ±1.96",
+      fcDisclaimer: "线性回归外推,不是真实销量预测模型：预售节奏常有促销/截止日冲量等突发波动,不会一直匀速增长。仅供参考,不代表实际结果。",
+      trendLessFmt: "最近一天净增比前一天少（{prev} → {last}）,增速在放缓。如果这个趋势持续,实际到 {rd} 的总量很可能比下面这个区间更低；但临近截止日常有冲量,也可能反超。",
+      trendMoreFmt: "最近一天净增比前一天多（{prev} → {last}）,增速在加快。",
+      ongoingSuffix: "（进行中,还没结束）"
+    },
+    en: {
+      pageTitle: "JISOO CLICK · Sales Tracker",
+      h1: "JISOO — Single Album 《CLICK》 Preorder Sales",
+      subtitle: "Cross-platform, cross-site tracking of 《CLICK》 preorder/group-buy page sales counts. Each record is one batch captured “at the same time” across every channel, so the site-wide total trend is a trustworthy time series. All times on this site are Korea Standard Time (KST, UTC+9).",
+      kstChip: "🕐 Site time: KST, Korea (UTC+9)",
+      sectionAsk: "Have a question? Ask here",
+      askPlaceholder: "Anything unclear, or a counting method you'd rather see? Ask away",
+      askNamePlaceholder: "Nickname (optional)",
+      askSubmit: "Submit",
+      askNote: "Only I can see this after you submit it. Once I reply, the question and answer together get added to the “Q&A” list below — your raw message is never posted as-is.",
+      askSending: "Sending…",
+      askOk: "Sent, thanks for asking! I'll get to it soon — the answer will show up below once I reply.",
+      askErr: "Couldn't send that — try again in a bit, or reach me another way",
+      askEmpty: "Write something before submitting",
+      sectionQaList: "Questions people have asked",
+      qaEmpty: "No public Q&A yet — ask something above and it'll show up here once I reply",
+      chipRelease: "Release <b>2026-09-04</b> · <b id=\"dday\">—</b>",
+      chipChannels: "Channels tracked <b id=\"channelCount\">—</b>",
+      chipBatches: "Batches recorded <b id=\"batchCount\">—</b>",
+      sectionSummary: "Site-wide Summary (by site)",
+      totalSoldLabel: "Total sold across all platforms so far",
+      hourlyUpdateNote: "Auto-updates hourly. Use “Counting method” below to switch formulas — leave it on the default if you're not sure.",
+      sectionTrend: "Site-wide Trend",
+      dailyGrowthTitle: "Daily Net Increase",
+      dailyGrowthHint: "Each bar is that day's net increase. Click a bar to expand that day's real hour-by-hour records below.",
+      dayDetailTitle: "Day Detail",
+      exportPng: "Export PNG",
+      cumulativeTitle: "Since Launch · Cumulative Total",
+      sectionForecastDetail: "Forecast Detail (linear regression + t-distribution prediction interval)",
+      sectionSiteBatches: "Site-wide Batch History",
+      from: "From (KST)",
+      to: "To (KST)",
+      presetAll: "All",
+      presetToday: "Today",
+      preset24h: "Last 24h",
+      exportCsv: "Export CSV",
+      tzNoteSite: "All times on this page are Korea Standard Time (KST, UTC+9), matching how “Daily Net Increase” below splits days · <span style=\"color:var(--ink-mute)\">Faded numbers</span> = carried over, that channel wasn't re-checked this run",
+      sectionChannelDetail: "Channel Detail",
+      updatedAt: "Updated",
+      snapshotCountLabel: "Records",
+      viewSource: "View source page ↗",
+      conventionLabel: "Counting method",
+      conventionPhysical: "Physical units (2CD ×2)",
+      conventionRaw: "Raw order count",
+      vinylLabel: "Vinyl Ver.",
+      vinylExclude: "Excluded (ships late, initial count unclear)",
+      vinylInclude: "Included",
+      statDdayLabel: "Until release (2026-09-04)",
+      statDdaySub: "Tracking window closes on release day",
+      statDelta24hLabel: "Net increase (24h)",
+      statNotEnough: "Not enough data",
+      statDelta24hSub: "Needs at least two records 24h apart",
+      statSpanLabel: "Time span recorded",
+      statSpanSub: "Hourly automated scraping",
+      tzNote: "All times on this page are Korea Standard Time (KST, UTC+9)",
+      footer1: "<b>Channel = platform × site.</b> 6 channels currently tracked, in 2 groups + 1 reference channel: <b>KimJisooEcho site</b> (Ktown4u eve_no=44509156 + Yetimall gid=32426), <b>StarDust site</b> (Ktown4u eve_no=44509161 + Yetimall gid=32425 + Namilmarket — all three belong to the StarDust site). Site-wide total = sum of both group subtotals; each group subtotal = sum of its channels. <b>Ktown4u Japan Union</b> is listed separately as a “reference channel” — these are Japan-region sales in JPY, not counted in the China total, shown only for comparison.",
+      footer2: "<b>About the counters:</b> every channel shows that storefront's own built-in raw counter (Ktown4u “sales record” / Yetimall “units sold” / Namilmarket “sold” / Ktown4u Japan “order history”) — not official Hanteo / Circle Chart first-week data, and counting logic is independent across channels. Ktown4u's “2CD Set” contains two physical discs (NFC ver. + Photobook ver.), counted ×2 under the physical-units convention; the vinyl version ships later, so whether to count it toward this album's first-week tally is your call — excluded by default. Each Yetimall link offers two album versions to choose from; “units sold” is the combined total under that product link, not split by version (splitting requires logging into that platform's account). Namilmarket's current number corresponds to the default-selected PB ver.; the NFC ver. split hasn't been verified yet.",
+      footer3: "<b>Not tracked:</b> Pinky-pop (a WeChat mini-program group-buy link) requires opening inside WeChat and possibly logging in to see data — too much friction for now, open to revisiting later.",
+      footer4: "Data is entered after manual verification. Once automated hourly scraping is live it accumulates every hour, and every channel is guaranteed to be recorded together in the same batch.",
+      footerCredit: "Made by wanzan · © 2026",
+      gateTitle: "Password required",
+      gateSubtitle: "This page is for invited viewers only",
+      gatePlaceholder: "Enter password",
+      gateEnter: "Enter",
+      gateWrong: "Wrong password, try again",
+      released: "Released",
+      dayFirstTag: "First day (partial)",
+      dayOngoingTag: "Ongoing",
+      daysUnit: "days",
+      noRecordsYet: "No records yet — daily net increase will show once data comes in",
+      dayDetailNoSelection: "Day Detail",
+      dayDetailTitleFmt: "{m}/{d} Detail",
+      recordPointsUnit: "records",
+      chartNotEnough: "Only {n} record(s) so far — a trend line will appear automatically once more batches come in",
+      siteTotal: "Site-wide total",
+      noRecordsInRange: "No records in the selected time range",
+      firstRecord: "First record",
+      recordsCountFmt: "{n} / {m} records",
+      colTime: "Time",
+      colSiteTotal: "Site-wide Total",
+      colDelta: "Net Increase",
+      colChannelTotal: "Total (current method)",
+      heroNoRecords: "No records yet",
+      heroTotalLabel: "Total sold",
+      conventionPhysicalShort: "physical-units method",
+      conventionRawShort: "raw-order method",
+      vinylIncludeShort: "incl. vinyl",
+      vinylExcludeShort: "excl. vinyl",
+      asOf: "as of",
+      statNeedTwoPoints: "Needs at least two records with some time between them",
+      lessThanHour: "< 1 hour",
+      hoursUnit: "hours",
+      compareAgainst: "vs.",
+      noDataYet: "No data yet",
+      viewChannelSource: "View {label} ({sub}) source page ↗",
+      fcEmpty: "Not enough data yet (need at least 2 hourly records within the last 24h) — a forecast will appear automatically once more batches come in",
+      fcBadge: "Forecast",
+      fcBadgeWithDate: "Forecast · release {date}",
+      fcAbout: "about",
+      fcNotEnoughData: "Not enough data yet — appears once more batches come in",
+      fcExpired: "Past the release-date cutoff",
+      fcRange95: "95% prediction interval",
+      fcLinearNote: "Linear extrapolation from the last 24h's pace — for reference only",
+      fcSlowing: ", pace is slowing down",
+      fcSpeeding: ", pace is speeding up",
+      fcSeeDetail: ", see “Forecast Detail” below",
+      fcRecent24h: "Pace (last 24h)",
+      fcPerHour: "/hour",
+      fcAboutPerDay: "about {v} /day · based on {n} records",
+      fcLinearExtrap: "Linear extrapolation · projected site-wide total at release",
+      fcExtrapNote: "Extrapolated from the last 24h's pace to {date}",
+      fcNoInterval: "(too few records to compute a confidence interval)",
+      fcR2Label: "Goodness of fit R² (closer to 1 = steadier pace)",
+      fcR2GoodNote: "The last 24h's pace has been fairly steady, so the extrapolation is relatively trustworthy",
+      fcR2BadNote: "The last 24h's pace itself has been quite variable, so treat the extrapolation as a rough reference only",
+      fcTNoteLabel: "t-distribution prediction interval parameters",
+      fcTNoteFmt: "t({df}) = {t} · sample n={n} (fewer degrees of freedom → wider interval — an honest reflection of not having much data yet)",
+      fcTNoteSub: "The interval uses the standard simple-linear-regression “prediction interval” formula, not a flat ±1.96 normal approximation",
+      fcDisclaimer: "A linear-regression extrapolation, not a real sales forecasting model: preorder pace often has bursts around promos or the deadline and won't stay constant. For reference only, not a guarantee of the actual outcome.",
+      trendLessFmt: "The latest day's net increase is lower than the day before it ({prev} → {last}) — pace is slowing. If this continues, the actual total by {rd} is likely to come in below this interval; though a last-minute rush before the deadline could still push it back up.",
+      trendMoreFmt: "The latest day's net increase is higher than the day before it ({prev} → {last}) — pace is picking up.",
+      ongoingSuffix: " (ongoing, not over yet)"
+    }
+  };
+  function t(key, params) {
+    var s = (STRINGS[LANG] && STRINGS[LANG][key] !== undefined) ? STRINGS[LANG][key] : STRINGS.zh[key];
+    if (s === undefined) return key;
+    if (params) {
+      Object.keys(params).forEach(function (k) { s = s.replace("{" + k + "}", params[k]); });
+    }
+    return s;
+  }
+  // Applies every data-i18n[-placeholder]-tagged static element to the current LANG.
+  function applyStaticI18n() {
+    document.documentElement.lang = LANG === "en" ? "en" : "zh-CN";
+    document.querySelectorAll("[data-i18n]").forEach(function (el) {
+      el.innerHTML = t(el.getAttribute("data-i18n"));
+    });
+    document.querySelectorAll("[data-i18n-placeholder]").forEach(function (el) {
+      el.setAttribute("placeholder", t(el.getAttribute("data-i18n-placeholder")));
+    });
+    document.querySelectorAll("[data-i18n-aria-label]").forEach(function (el) {
+      el.setAttribute("aria-label", t(el.getAttribute("data-i18n-aria-label")));
+    });
+    document.title = t("pageTitle");
+    document.querySelectorAll("[data-lang]").forEach(function (b) {
+      b.setAttribute("aria-pressed", b.getAttribute("data-lang") === LANG ? "true" : "false");
+    });
+    renderNoticeBanner();
+    renderQaList();
+  }
+
+  // Running changelog of user-visible fixes/changes, newest first. Add a new entry here
+  // whenever a fix ships — that's what makes the banner "pop up and tell everyone" the
+  // next time they load the page: it reappears automatically once UPDATE_LOG[0].date is
+  // newer than whatever date the viewer last dismissed (tracked in their own localStorage).
+  var UPDATE_LOG = [
+    {
+      date: "2026-08-28",
+      zh: "全站时间统一改为韩国时间（KST，UTC+9）显示,不再混用本地时区；新增“每日净增”图表和中/英文切换；修复了一处数据合并导致的图表跳变。",
+      en: "All times on this site now show Korea Standard Time (KST, UTC+9) — no more mixed timezones. Added a “Daily Net Increase” chart and a 中文/EN language switch. Fixed a chart discontinuity caused by a data-merge issue."
+    }
+  ];
+  function renderNoticeBanner() {
+    var el = document.getElementById("noticeBanner");
+    if (!el || !UPDATE_LOG.length) { if (el) el.style.display = "none"; return; }
+    var latest = UPDATE_LOG[0];
+    var dismissed = null;
+    try { dismissed = localStorage.getItem("jisoo_notice_dismissed"); } catch (e) { /* private browsing etc. */ }
+    if (dismissed === latest.date) { el.style.display = "none"; return; }
+    el.style.display = "flex";
+    el.innerHTML =
+      '<div class="nb-icon">🔔</div>' +
+      '<div class="nb-body"><span class="nb-date">' + latest.date + '</span>' + (LANG === "en" ? latest.en : latest.zh) + '</div>' +
+      '<button type="button" class="nb-close" id="noticeDismiss" aria-label="dismiss">✕</button>';
+    document.getElementById("noticeDismiss").addEventListener("click", function () {
+      try { localStorage.setItem("jisoo_notice_dismissed", latest.date); } catch (e) { /* ignore */ }
+      el.style.display = "none";
+    });
+  }
+
+  // ---- ask-a-question box + curated public Q&A ----
+  // Submissions go straight to a Formspree endpoint (private — only reaches the site
+  // owner's inbox, nothing is auto-published) so no visitor login/account is needed.
+  // Set this to the real "https://formspree.io/f/xxxxxxxx" endpoint once created;
+  // left blank the form just explains it isn't wired up yet instead of failing silently.
+  var ASK_FORM_ENDPOINT = "https://formspree.io/f/xrpgggwd";
+
+  document.getElementById("askForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var statusEl = document.getElementById("askStatus");
+    var q = document.getElementById("askQuestion").value.trim();
+    var name = document.getElementById("askName").value.trim();
+    if (!q) { statusEl.textContent = t("askEmpty"); statusEl.className = "ask-status err"; return; }
+    if (!ASK_FORM_ENDPOINT) {
+      statusEl.textContent = t("askErr");
+      statusEl.className = "ask-status err";
+      return;
+    }
+    var submitBtn = document.getElementById("askSubmit");
+    submitBtn.disabled = true;
+    statusEl.textContent = t("askSending");
+    statusEl.className = "ask-status";
+    fetch(ASK_FORM_ENDPOINT, {
+      method: "POST",
+      headers: { "Accept": "application/json" },
+      body: new FormData(document.getElementById("askForm"))
+    }).then(function (res) {
+      submitBtn.disabled = false;
+      if (res.ok) {
+        statusEl.textContent = t("askOk");
+        statusEl.className = "ask-status ok";
+        document.getElementById("askForm").reset();
+      } else {
+        statusEl.textContent = t("askErr");
+        statusEl.className = "ask-status err";
+      }
+    }).catch(function () {
+      submitBtn.disabled = false;
+      statusEl.textContent = t("askErr");
+      statusEl.className = "ask-status err";
+    });
+  });
+
+  // Curated Q&A shown publicly — a question only appears here once *I've* added the
+  // matching answer; raw submissions from the form above never get auto-published.
+  // Add new entries at the front (newest first) as fans ask and I answer.
+  var QA_LOG = [
+    // { date: "2026-08-28", q: "...", a: "...", qEn: "...", aEn: "..." },
+  ];
+  function renderQaList() {
+    var el = document.getElementById("qaList");
+    if (!el) return;
+    if (!QA_LOG.length) { el.innerHTML = '<div class="qa-empty">' + t("qaEmpty") + '</div>'; return; }
+    el.innerHTML = QA_LOG.map(function (item) {
+      var q = LANG === "en" && item.qEn ? item.qEn : item.q;
+      var a = LANG === "en" && item.aEn ? item.aEn : item.a;
+      return '<div class="qa-item"><div class="qa-q">' + q + '</div><div class="qa-a">' + a + '</div>' +
+        '<div class="qa-date">' + item.date + '</div></div>';
+    }).join("");
+  }
 
   // ---- state ----
   var state = { channel: "ktown4u_echo", convention: "physical", vinyl: "exclude", preset: "all", from: null, to: null };
@@ -691,28 +1168,66 @@
     });
   }
   function fmt(n) { return n === null || n === undefined ? "—" : n.toLocaleString("zh-CN"); }
+  // Every timestamp shown on the page — table rows, chart tooltips/axis labels, "as of",
+  // "updated", day-detail titles — renders in a single fixed timezone (KST) regardless of
+  // the viewer's own browser timezone, so there's only ever one clock on this page, not
+  // "reader's local time" for some numbers and KST for others. Matches dayKey()/dayLabel()
+  // above, which already group "days" by this same KST timezone.
   function fmtDate(iso) {
     var d = new Date(iso);
-    return d.toLocaleString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false });
+    return d.toLocaleString(LANG === "en" ? "en-US" : "zh-CN", {
+      timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false
+    });
   }
   function fmtDateShort(iso) {
     var d = new Date(iso);
-    return d.toLocaleString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false });
+    return d.toLocaleString(LANG === "en" ? "en-US" : "zh-CN", {
+      timeZone: "Asia/Seoul", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false
+    });
   }
+  // The from/to range pickers are also KST — same reasoning as fmtDate() above: showing
+  // them in the viewer's own browser timezone while everything else on the page is KST
+  // is exactly the "which clock is this?" confusion this page used to have.
   function toLocalInput(d) {
+    var k = toKST(d);
     var pad = function (n) { return String(n).padStart(2, "0"); };
-    return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + "T" + pad(d.getHours()) + ":" + pad(d.getMinutes());
+    return k.getUTCFullYear() + "-" + pad(k.getUTCMonth() + 1) + "-" + pad(k.getUTCDate()) + "T" + pad(k.getUTCHours()) + ":" + pad(k.getUTCMinutes());
+  }
+  // Inverse of toLocalInput: a "YYYY-MM-DDTHH:mm" string out of a <input type="datetime-local">
+  // is naive (no timezone attached) — parse it as KST wall-clock time by appending KST's
+  // fixed +09:00 offset, rather than letting `new Date(...)` fall back to browser-local.
+  function parseKSTInput(value) {
+    if (!value) return null;
+    return new Date(value + ":00+09:00");
   }
 
-  // Local-calendar-day key, e.g. "2026-8-27" — shared by every day-bucketing helper below
-  // so a "day" always means the same thing (viewer's local midnight-to-midnight).
+  // These preorder platforms all run on Korea time, and deadlines/day boundaries are
+  // conventionally read as "KST 24:00" — i.e. a moment right at KST midnight belongs to
+  // the day that's ending, not the one starting. Shifting the timestamp by the KST offset
+  // and reading it back with the UTC getters gives KST wall-clock date components without
+  // needing a timezone database; Korea has no DST so this stays exact year-round.
+  var KST_OFFSET_MS = 9 * 3600000;
+  function toKST(ts) {
+    return new Date(new Date(ts).getTime() + KST_OFFSET_MS);
+  }
+  // The real instant that is KST midnight of the KST calendar day containing `ts` —
+  // used for the "today" range preset so it lines up with the KST day boundary
+  // everywhere else on the page, not the viewer's own local midnight.
+  function startOfKSTDay(ts) {
+    var k = toKST(ts);
+    return new Date(Date.UTC(k.getUTCFullYear(), k.getUTCMonth(), k.getUTCDate()) - KST_OFFSET_MS);
+  }
+  // Calendar-day key in KST, e.g. "2026-8-27" — shared by every day-bucketing helper below
+  // so a "day" always means the same KST midnight-to-midnight window, regardless of the
+  // viewer's own timezone. fmtDate()/fmtDateShort() below render every displayed timestamp
+  // in this same KST timezone too, so the whole page runs on one single clock.
   function dayKey(ts) {
-    var d = new Date(ts);
-    return d.getFullYear() + "-" + d.getMonth() + "-" + d.getDate();
+    var d = toKST(ts);
+    return d.getUTCFullYear() + "-" + d.getUTCMonth() + "-" + d.getUTCDate();
   }
   function dayLabel(ts) {
-    var d = new Date(ts);
-    return (d.getMonth() + 1) + "/" + d.getDate();
+    var d = toKST(ts);
+    return (d.getUTCMonth() + 1) + "/" + d.getUTCDate();
   }
   // Collapses multiple same-hour points down to one (the latest value seen in that
   // hour) so a burst of manual test batches within one hour doesn't clutter the chart.
@@ -823,11 +1338,11 @@
       if (note) note.textContent = "";
       wrap.innerHTML = '<div class="chart-empty">' +
         '<div class="big mono">' + (points.length ? fmt(points[0].value) : "—") + '</div>' +
-        '<div>' + emptyLabel + ' 目前只有 ' + points.length + ' 个记录点，趋势线会在积累更多批次数据后自动出现</div>' +
+        '<div>' + emptyLabel + " " + t("chartNotEnough", { n: points.length }) + '</div>' +
         '</div>';
       return;
     }
-    if (note) note.textContent = points.length + " 个记录点";
+    if (note) note.textContent = points.length + " " + t("recordPointsUnit");
 
     var W = 900, H = 220, padL = 50, padR = 12, padT = 16, padB = 26;
     var xs = points.map(function (p) { return new Date(p.ts).getTime(); });
@@ -898,7 +1413,7 @@
     var now = new Date();
     var release = new Date(RELEASE_DATE);
     var diffDays = Math.ceil((release - now) / 86400000);
-    var ddayText = diffDays > 0 ? ("D-" + diffDays) : (diffDays === 0 ? "D-DAY" : "已发行");
+    var ddayText = diffDays > 0 ? ("D-" + diffDays) : (diffDays === 0 ? "D-DAY" : t("released"));
     document.getElementById("dday").textContent = ddayText;
     document.getElementById("statDday").textContent = ddayText;
   }
@@ -913,10 +1428,10 @@
       var total = latest ? groupTotal(g, latest) : null;
       var members = g.channelIds.map(function (cid) {
         var ch = channelById(cid);
-        var t = latest ? channelTotal(ch, latest.values[cid]) : null;
-        return '<span class="member">' + ch.label + ' ' + fmt(t) + '</span>';
+        var v = latest ? channelTotal(ch, latest.values[cid]) : null;
+        return '<span class="member">' + L(ch, "label") + ' ' + fmt(v) + '</span>';
       }).join("");
-      return '<div class="group-card"><div class="gname">' + g.label + '</div>' +
+      return '<div class="group-card"><div class="gname">' + L(g, "label") + '</div>' +
         '<div class="gtotal mono">' + fmt(total) + '</div>' +
         '<div class="members">' + members + '</div></div>';
     }).join("");
@@ -925,7 +1440,7 @@
   function renderSiteChart() {
     var timeline = buildTimeline();
     var points = timeline.map(function (snap) { return { ts: snap.ts, value: grandTotal(snap) }; }).filter(function (p) { return p.value !== null; });
-    renderLineChart("siteChartWrap", "siteChartNote", bucketByHour(points), "全站合计");
+    renderLineChart("siteChartWrap", "siteChartNote", bucketByHour(points), t("siteTotal"));
   }
 
   // Shared by the site-wide and per-channel trend sections: a bar per calendar day
@@ -936,11 +1451,11 @@
     var deltas = dailyDeltas(points);
     if (!deltas.length) {
       if (noteEl) noteEl.textContent = "";
-      barsEl.innerHTML = '<div class="chart-empty" style="height:auto;padding:24px 0;">还没有记录,积累数据后会显示每日净增</div>';
+      barsEl.innerHTML = '<div class="chart-empty" style="height:auto;padding:24px 0;">' + t("noRecordsYet") + '</div>';
       onSelect(null, deltas);
       return;
     }
-    if (noteEl) noteEl.textContent = deltas.length + " 天";
+    if (noteEl) noteEl.textContent = deltas.length + " " + t("daysUnit");
     var validKeys = deltas.map(function (d) { return d.key; });
     if (!dailyState.selectedDay || validKeys.indexOf(dailyState.selectedDay) === -1) {
       dailyState.selectedDay = deltas[deltas.length - 1].key;
@@ -948,7 +1463,7 @@
     var maxDelta = Math.max.apply(null, deltas.map(function (d) { return Math.max(d.delta, 0); }).concat([1]));
     barsEl.innerHTML = deltas.map(function (d) {
       var heightPct = Math.max(4, Math.round(Math.max(d.delta, 0) / maxDelta * 100));
-      var tag = d.isFirst ? "首日不完整" : (d.isOngoing ? "进行中" : "");
+      var tag = d.isFirst ? t("dayFirstTag") : (d.isOngoing ? t("dayOngoingTag") : "");
       var pressed = d.key === dailyState.selectedDay;
       return '<button type="button" class="daily-bar" data-day="' + d.key + '" aria-pressed="' + pressed + '">' +
         '<div class="db-value">' + (d.delta >= 0 ? "+" : "") + fmt(d.delta) + '</div>' +
@@ -969,14 +1484,14 @@
   function renderDayDetail(wrapId, noteId, titleId, points, key, emptyLabel) {
     var titleEl = document.getElementById(titleId);
     if (!key) {
-      if (titleEl) titleEl.textContent = "当日明细";
+      if (titleEl) titleEl.textContent = t("dayDetailNoSelection");
       renderLineChart(wrapId, noteId, [], emptyLabel);
       return;
     }
     var dayPoints = pointsOnDay(points, key);
     if (titleEl && dayPoints.length) {
-      var d = new Date(dayPoints[0].ts);
-      titleEl.textContent = (d.getMonth() + 1) + "月" + d.getDate() + "日明细";
+      var d = toKST(dayPoints[0].ts);
+      titleEl.textContent = t("dayDetailTitleFmt", { m: d.getUTCMonth() + 1, d: d.getUTCDate() });
     }
     renderLineChart(wrapId, noteId, dayPoints, emptyLabel);
   }
@@ -984,24 +1499,27 @@
     var timeline = buildTimeline();
     var points = timeline.map(function (snap) { return { ts: snap.ts, value: grandTotal(snap) }; }).filter(function (p) { return p.value !== null; });
     renderDailyBars("siteDailyBars", "siteDailyNote", points, siteDailyState, function (key) {
-      renderDayDetail("siteDayDetailWrap", "siteDayDetailNote", "siteDayDetailTitle", points, key, "全站合计");
+      renderDayDetail("siteDayDetailWrap", "siteDayDetailNote", "siteDayDetailTitle", points, key, t("siteTotal"));
     });
   }
 
   // Compares the last two full calendar days (skipping the first, mid-tracking-start day)
   // so the forecast copy can honestly say whether the pace is speeding up or slowing down,
   // instead of pretending a single straight line tells the whole story.
+  // Returns { text, direction } — direction is "slow" | "fast" | null, so callers can
+  // branch on it directly instead of pattern-matching the (language-dependent) text.
   function dailyTrendNote(points) {
     var deltas = dailyDeltas(points).filter(function (d) { return !d.isFirst; });
-    if (deltas.length < 2) return "";
+    if (deltas.length < 2) return { text: "", direction: null };
     var last = deltas[deltas.length - 1], prev = deltas[deltas.length - 2];
-    var lastLabel = fmt(last.delta) + (last.isOngoing ? "（进行中,还没结束）" : "");
+    var lastLabel = fmt(last.delta) + (last.isOngoing ? t("ongoingSuffix") : "");
+    var rd = fmtDateShort(RELEASE_DATE);
     if (last.delta < prev.delta) {
-      return "最近一天净增比前一天少（" + fmt(prev.delta) + " → " + lastLabel + "）,增速在放缓。如果这个趋势持续,实际到 9/4 的总量很可能比下面这个区间更低；但临近截止日常有冲量,也可能反超。";
+      return { text: t("trendLessFmt", { prev: fmt(prev.delta), last: lastLabel, rd: rd }), direction: "slow" };
     } else if (last.delta > prev.delta) {
-      return "最近一天净增比前一天多（" + fmt(prev.delta) + " → " + lastLabel + "）,增速在加快。";
+      return { text: t("trendMoreFmt", { prev: fmt(prev.delta), last: lastLabel }), direction: "fast" };
     }
-    return "";
+    return { text: "", direction: null };
   }
 
   // Rough linear extrapolation from the last 24h of hourly grand-total points, projected
@@ -1033,14 +1551,16 @@
     var timeline = buildTimeline();
     var points = timeline.map(function (snap) { return { ts: snap.ts, value: grandTotal(snap) }; }).filter(function (p) { return p.value !== null; });
     var fc = computeForecast(points);
-    if (!fc) { el.innerHTML = '<div class="sf-badge">预测</div><div class="sf-note">数据点还不够,积累更多批次后出现</div>'; return; }
-    if (fc.expired) { el.innerHTML = '<div class="sf-badge">预测</div><div class="sf-note">已过发行日截止时间</div>'; return; }
+    if (!fc) { el.innerHTML = '<div class="sf-badge">' + t("fcBadge") + '</div><div class="sf-note">' + t("fcNotEnoughData") + '</div>'; return; }
+    if (fc.expired) { el.innerHTML = '<div class="sf-badge">' + t("fcBadge") + '</div><div class="sf-note">' + t("fcExpired") + '</div>'; return; }
     var trend = dailyTrendNote(points);
     el.innerHTML =
-      '<div class="sf-badge">预测 · ' + fmtDateShort(RELEASE_DATE) + ' 发行日</div>' +
-      '<div class="sf-value mono">约 ' + fmt(Math.round(fc.projected)) + '</div>' +
-      (fc.pi ? '<div class="sf-range">95% 预测区间 ' + fmt(Math.round(fc.lo)) + ' ~ ' + fmt(Math.round(fc.hi)) + '</div>' : '') +
-      '<div class="sf-note">按近 24 小时增速线性外推,仅供参考' + (trend ? "，" + (trend.indexOf("放缓") !== -1 ? "增速在放缓" : "增速在加快") : "") + '，详情见下方"预测详情"</div>';
+      '<div class="sf-badge">' + t("fcBadgeWithDate", { date: fmtDateShort(RELEASE_DATE) }) + '</div>' +
+      '<div class="sf-value mono">' + t("fcAbout") + ' ' + fmt(Math.round(fc.projected)) + '</div>' +
+      (fc.pi ? '<div class="sf-range">' + t("fcRange95") + ' ' + fmt(Math.round(fc.lo)) + ' ~ ' + fmt(Math.round(fc.hi)) + '</div>' : '') +
+      '<div class="sf-note">' + t("fcLinearNote") +
+        (trend.direction === "slow" ? t("fcSlowing") : trend.direction === "fast" ? t("fcSpeeding") : "") +
+        t("fcSeeDetail") + '</div>';
   }
   function renderForecast() {
     var el = document.getElementById("forecastCard");
@@ -1048,33 +1568,33 @@
     var points = timeline.map(function (snap) { return { ts: snap.ts, value: grandTotal(snap) }; }).filter(function (p) { return p.value !== null; });
     var fc = computeForecast(points);
     if (!fc) {
-      el.innerHTML = '<div class="fc-empty">数据点还不够（至少需要 2 个近 24 小时内的小时级记录点),积累更多批次后会自动出现预测</div>';
+      el.innerHTML = '<div class="fc-empty">' + t("fcEmpty") + '</div>';
       return;
     }
     var reg = fc.reg;
     var perHour = reg.slope, perDay = reg.slope * 24;
-    var projectedText = "已过发行日截止时间", marginText = "", subText = "追踪窗口已在发行日截止,不再外推";
+    var projectedText = t("fcExpired"), marginText = "", subText = t("fcExpired");
     if (!fc.expired) {
       projectedText = fmt(Math.round(fc.projected));
-      marginText = fc.pi ? (" ｜ 95% 预测区间 " + fmt(Math.round(fc.lo)) + " ~ " + fmt(Math.round(fc.hi))) : "（记录点太少,算不出置信区间)";
-      subText = "按近 24 小时增速外推到 " + fmtDate(RELEASE_DATE);
+      marginText = fc.pi ? (" ｜ " + t("fcRange95") + " " + fmt(Math.round(fc.lo)) + " ~ " + fmt(Math.round(fc.hi))) : t("fcNoInterval");
+      subText = t("fcExtrapNote", { date: fmtDate(RELEASE_DATE) });
     }
     var r2Pct = (reg.r2 * 100).toFixed(0);
     var r2Class = reg.r2 >= 0.85 ? "fc-r2-good" : "fc-r2-bad";
-    var r2Note = reg.r2 >= 0.85 ? "近 24 小时增速比较匀速,外推相对可信" : "近 24 小时增速本身波动较大,外推仅作粗略参考";
-    var tNote = fc.pi ? ("t(" + fc.pi.df + ") = " + tCritical95(fc.pi.df).toFixed(3) + " · 样本 n=" + reg.n + "（自由度越小,区间越宽,越诚实地反映数据还不够多）") : "";
+    var r2Note = reg.r2 >= 0.85 ? t("fcR2GoodNote") : t("fcR2BadNote");
+    var tNote = fc.pi ? t("fcTNoteFmt", { df: fc.pi.df, t: tCritical95(fc.pi.df).toFixed(3), n: reg.n }) : "";
     var trend = dailyTrendNote(points);
     el.innerHTML =
-      '<div><div class="fc-label">近 24 小时增速</div><div class="fc-value mono">' + (perHour >= 0 ? "+" : "") + fmt(Math.round(perHour)) + ' /小时</div>' +
-      '<div class="fc-sub">约 ' + (perDay >= 0 ? "+" : "") + fmt(Math.round(perDay)) + ' /天 · 基于 ' + reg.n + ' 个记录点</div></div>' +
-      '<div><div class="fc-label">线性回归外推 · 预计发行日全站合计</div><div class="fc-value mono">' + projectedText + '</div>' +
+      '<div><div class="fc-label">' + t("fcRecent24h") + '</div><div class="fc-value mono">' + (perHour >= 0 ? "+" : "") + fmt(Math.round(perHour)) + " " + t("fcPerHour") + '</div>' +
+      '<div class="fc-sub">' + t("fcAboutPerDay", { v: (perDay >= 0 ? "+" : "") + fmt(Math.round(perDay)), n: reg.n }) + '</div></div>' +
+      '<div><div class="fc-label">' + t("fcLinearExtrap") + '</div><div class="fc-value mono">' + projectedText + '</div>' +
       '<div class="fc-sub">' + subText + marginText + '</div></div>' +
-      '<div><div class="fc-label">拟合优度 R²（越接近 1 说明增速越匀速）</div><div class="fc-value mono ' + r2Class + '">' + r2Pct + '%</div>' +
+      '<div><div class="fc-label">' + t("fcR2Label") + '</div><div class="fc-value mono ' + r2Class + '">' + r2Pct + '%</div>' +
       '<div class="fc-sub">' + r2Note + '</div></div>' +
-      (tNote ? '<div><div class="fc-label">t 分布预测区间参数</div><div class="fc-value mono" style="font-size:15px;">' + tNote + '</div>' +
-        '<div class="fc-sub">区间用的是标准简单线性回归"预测区间"公式,不是仅凭正态近似的 ±1.96</div></div>' : '') +
-      (trend ? '<div class="fc-note">' + trend + '</div>' : '') +
-      '<div class="fc-note">线性回归外推,不是真实销量预测模型：预售节奏常有促销/截止日冲量等突发波动,不会一直匀速增长。仅供参考,不代表实际结果。</div>';
+      (tNote ? '<div><div class="fc-label">' + t("fcTNoteLabel") + '</div><div class="fc-value mono" style="font-size:15px;">' + tNote + '</div>' +
+        '<div class="fc-sub">' + t("fcTNoteSub") + '</div></div>' : '') +
+      (trend.text ? '<div class="fc-note">' + trend.text + '</div>' : '') +
+      '<div class="fc-note">' + t("fcDisclaimer") + '</div>';
   }
 
   function siteFilteredBatches() {
@@ -1091,13 +1611,13 @@
     // so they're visible without scrolling — they're the two numbers people actually
     // check at a glance; the per-channel columns are detail you scroll sideways for.
     document.getElementById("siteTableHead").innerHTML =
-      "<tr><th>时间</th><th>全站合计</th><th class=\"col-divider\">较上批次净增</th>" +
-      TOTALED_CHANNELS.map(function (c) { return "<th>" + c.label + " · " + c.sub + "</th>"; }).join("") + "</tr>";
+      "<tr><th>" + t("colTime") + "</th><th>" + t("colSiteTotal") + "</th><th class=\"col-divider\">" + t("colDelta") + "</th>" +
+      TOTALED_CHANNELS.map(function (c) { return "<th>" + L(c, "label") + " · " + L(c, "sub") + "</th>"; }).join("") + "</tr>";
     var tbody = document.getElementById("siteTableBody");
-    document.getElementById("siteRowCount").textContent = rows.length + " / " + BATCHES.length + " 条记录";
+    document.getElementById("siteRowCount").textContent = t("recordsCountFmt", { n: rows.length, m: BATCHES.length });
     var colSpan = TOTALED_CHANNELS.length + 3;
     if (!rows.length) {
-      tbody.innerHTML = '<tr class="empty-row"><td colspan="' + colSpan + '">所选时间段内没有记录</td></tr>';
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="' + colSpan + '">' + t("noRecordsInRange") + '</td></tr>';
       return;
     }
     // deltas compare against the full (unfiltered) timeline so "较上批次净增" always
@@ -1118,7 +1638,7 @@
         return '<td class="mono"' + style + '>' + fmt(channelTotal(c, snap.values[c.id])) + "</td>";
       }).join("");
       var d = deltaByTs[snap.ts];
-      var deltaCell = d === null ? '<td class="mono col-divider" style="color:var(--ink-mute)">首次记录</td>' :
+      var deltaCell = d === null ? '<td class="mono col-divider" style="color:var(--ink-mute)">' + t("firstRecord") + '</td>' :
         '<td class="mono col-divider" style="color:' + (d >= 0 ? "var(--good)" : "var(--ink)") + '">' + (d >= 0 ? "+" : "") + fmt(d) + "</td>";
       return "<tr><td>" + fmtDate(snap.ts) + '</td><td class="mono total">' + fmt(grandTotal(snap)) + "</td>" + deltaCell + cells + "</tr>";
     }).join("");
@@ -1131,7 +1651,7 @@
     var now = new Date();
     if (preset === "all") { siteState.from = null; siteState.to = null; fromInput.value = ""; toInput.value = ""; }
     else if (preset === "today") {
-      var start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      var start = startOfKSTDay(now);
       siteState.from = start.toISOString(); siteState.to = now.toISOString();
       fromInput.value = toLocalInput(start); toInput.value = toLocalInput(now);
     } else if (preset === "24h") {
@@ -1160,20 +1680,20 @@
     var latest = BATCHES[BATCHES.length - 1];
     return channelIds.map(function (cid) {
       var ch = channelById(cid);
-      var t = latest ? channelTotal(ch, latest.values[cid]) : null;
+      var v = latest ? channelTotal(ch, latest.values[cid]) : null;
       var active = ch.id === state.channel;
       return '<button type="button" class="channel-pill' + (active ? " active" : "") + '" data-channel="' + ch.id + '">' +
-        (active ? "● " : "") + ch.label + " · " + ch.sub + ' <span class="n">' + fmt(t) + "</span></button>";
+        (active ? "● " : "") + L(ch, "label") + " · " + L(ch, "sub") + ' <span class="n">' + fmt(v) + "</span></button>";
     }).join("");
   }
 
   function renderTabs() {
     var groupsHtml = GROUPS.map(function (g) {
-      return '<div class="tabs-group"><div class="glabel">' + g.label + "</div><div class=\"channel-row\">" +
+      return '<div class="tabs-group"><div class="glabel">' + L(g, "label") + "</div><div class=\"channel-row\">" +
         renderTabPills(g.channelIds) + "</div></div>";
     }).join("");
     var refHtml = REFERENCE_CHANNEL_IDS.length
-      ? '<div class="tabs-group"><div class="glabel">' + REFERENCE_GROUP_LABEL + "</div><div class=\"channel-row\">" +
+      ? '<div class="tabs-group"><div class="glabel">' + (LANG === "en" ? REFERENCE_GROUP_LABEL_EN : REFERENCE_GROUP_LABEL) + "</div><div class=\"channel-row\">" +
         renderTabPills(REFERENCE_CHANNEL_IDS) + "</div></div>"
       : "";
     document.getElementById("tabsWrap").innerHTML = groupsHtml + refHtml;
@@ -1196,17 +1716,17 @@
     var labelEl = document.getElementById("heroLabel");
     var breakdownEl = document.getElementById("breakdown");
     if (!latest) {
-      heroEl.textContent = "—"; labelEl.textContent = "暂无记录"; breakdownEl.innerHTML = ""; return;
+      heroEl.textContent = "—"; labelEl.textContent = t("heroNoRecords"); breakdownEl.innerHTML = ""; return;
     }
     heroEl.textContent = fmt(channelTotal(channel, latest.counts));
-    labelEl.textContent = channel.label + " · " + channel.sub + " 合计销量 · " +
-      (state.convention === "physical" ? "物理张数口径" : "原始订单口径") +
-      (state.vinyl === "include" ? " · 含黑胶" : " · 不含黑胶") + " · 截至 " + fmtDate(latest.ts);
+    labelEl.textContent = L(channel, "label") + " · " + L(channel, "sub") + " " + t("heroTotalLabel") + " · " +
+      (state.convention === "physical" ? t("conventionPhysicalShort") : t("conventionRawShort")) +
+      (state.vinyl === "include" ? " · " + t("vinylIncludeShort") : " · " + t("vinylExcludeShort")) + " · " + t("asOf") + " " + fmtDate(latest.ts);
     breakdownEl.innerHTML = includedItems(channel).map(function (it) {
       var raw = latest.counts[it.id] || 0;
       var mult = itemMultiplier(it);
       var val = raw * mult;
-      return '<div class="breakdown-item"><div class="name">' + it.name + '</div><div class="val mono">' + fmt(val) +
+      return '<div class="breakdown-item"><div class="name">' + L(it, "name") + '</div><div class="val mono">' + fmt(val) +
         (mult > 1 ? ' <small>(' + fmt(raw) + '×' + mult + ')</small>' : '') + '</div></div>';
     }).join("");
   }
@@ -1218,28 +1738,28 @@
     var deltaSubEl = document.getElementById("statDelta24hSub");
     var spanEl = document.getElementById("statSpan");
     if (SNAPS.length < 2) {
-      deltaEl.textContent = "数据不足"; deltaEl.classList.add("dim");
-      deltaSubEl.textContent = "需要至少两个相隔一段时间的记录点";
-      spanEl.textContent = SNAPS.length ? "< 1 小时" : "—";
+      deltaEl.textContent = t("statNotEnough"); deltaEl.classList.add("dim");
+      deltaSubEl.textContent = t("statNeedTwoPoints");
+      spanEl.textContent = SNAPS.length ? t("lessThanHour") : "—";
     } else {
       var latest = SNAPS[SNAPS.length - 1];
       var latestTime = new Date(latest.ts).getTime();
       var target = latestTime - 24 * 3600000;
       var best = null;
       for (var i = SNAPS.length - 2; i >= 0; i--) {
-        var t = new Date(SNAPS[i].ts).getTime();
-        if (t <= latestTime) { best = SNAPS[i]; if (t <= target) break; }
+        var snapTime = new Date(SNAPS[i].ts).getTime();
+        if (snapTime <= latestTime) { best = SNAPS[i]; if (snapTime <= target) break; }
       }
       if (best) {
         var delta = channelTotal(channel, latest.counts) - channelTotal(channel, best.counts);
         deltaEl.textContent = (delta >= 0 ? "+" : "") + fmt(delta);
         deltaEl.classList.remove("dim");
         deltaEl.style.color = delta >= 0 ? "var(--good)" : "var(--ink)";
-        deltaSubEl.textContent = "对比 " + fmtDateShort(best.ts);
+        deltaSubEl.textContent = t("compareAgainst") + " " + fmtDateShort(best.ts);
       }
       var first = SNAPS[0], last = SNAPS[SNAPS.length - 1];
       var hrs = Math.round((new Date(last.ts) - new Date(first.ts)) / 3600000);
-      spanEl.textContent = hrs < 1 ? "< 1 小时" : (hrs + " 小时");
+      spanEl.textContent = hrs < 1 ? t("lessThanHour") : (hrs + " " + t("hoursUnit"));
     }
   }
 
@@ -1257,7 +1777,7 @@
     var now = new Date();
     if (preset === "all") { state.from = null; state.to = null; fromInput.value = ""; toInput.value = ""; }
     else if (preset === "today") {
-      var start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      var start = startOfKSTDay(now);
       state.from = start.toISOString(); state.to = now.toISOString();
       fromInput.value = toLocalInput(start); toInput.value = toLocalInput(now);
     } else if (preset === "24h") {
@@ -1272,9 +1792,9 @@
 
   function renderChannelTableHead() {
     var channel = activeChannel();
-    var cols = channel.items.map(function (it) { return "<th>" + it.name + "</th>"; }).join("");
+    var cols = channel.items.map(function (it) { return "<th>" + L(it, "name") + "</th>"; }).join("");
     // 合计/净增 right after 时间 (before the per-item breakdown), same reasoning as the site table
-    document.getElementById("tableHead").innerHTML = "<tr><th>时间</th><th>合计（当前口径）</th><th class=\"col-divider\">较上批次净增</th>" + cols + "</tr>";
+    document.getElementById("tableHead").innerHTML = "<tr><th>" + t("colTime") + "</th><th>" + t("colChannelTotal") + "</th><th class=\"col-divider\">" + t("colDelta") + "</th>" + cols + "</tr>";
   }
 
   function renderChannelTable() {
@@ -1282,9 +1802,9 @@
     var allSnaps = channelSnapshots(channel);
     var rows = filteredChannelSnapshots();
     var tbody = document.getElementById("tableBody");
-    document.getElementById("rowCount").textContent = rows.length + " / " + allSnaps.length + " 条记录";
+    document.getElementById("rowCount").textContent = t("recordsCountFmt", { n: rows.length, m: allSnaps.length });
     var colSpan = channel.items.length + 3;
-    if (!rows.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="' + colSpan + '">所选时间段内没有记录</td></tr>'; return; }
+    if (!rows.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="' + colSpan + '">' + t("noRecordsInRange") + '</td></tr>'; return; }
     var deltaByTs = {};
     allSnaps.forEach(function (s, i) {
       var prev = i > 0 ? channelTotal(channel, allSnaps[i - 1].counts) : null;
@@ -1295,7 +1815,7 @@
       var total = channelTotal(channel, s.counts);
       var cells = channel.items.map(function (it) { return '<td class="mono">' + fmt(s.counts[it.id] || 0) + "</td>"; }).join("");
       var d = deltaByTs[s.ts];
-      var deltaCell = d === null ? '<td class="mono col-divider" style="color:var(--ink-mute)">首次记录</td>' :
+      var deltaCell = d === null ? '<td class="mono col-divider" style="color:var(--ink-mute)">' + t("firstRecord") + '</td>' :
         '<td class="mono col-divider" style="color:' + (d >= 0 ? "var(--good)" : "var(--ink)") + '">' + (d >= 0 ? "+" : "") + fmt(d) + "</td>";
       return "<tr><td>" + fmtDate(s.ts) + '</td><td class="mono total">' + fmt(total) + "</td>" + deltaCell + cells + "</tr>";
     }).join("");
@@ -1376,11 +1896,11 @@
     var channel = activeChannel();
     var snaps = channelSnapshots(channel);
     var latest = snaps[snaps.length - 1];
-    document.getElementById("lastUpdated").textContent = latest ? fmtDate(latest.ts) : "暂无数据";
+    document.getElementById("lastUpdated").textContent = latest ? fmtDate(latest.ts) : t("noDataYet");
     document.getElementById("snapshotCount").textContent = snaps.length;
     var link = document.getElementById("sourceLink");
     link.href = channel.sourceUrl;
-    link.textContent = "查看" + channel.label + "（" + channel.sub + "）原页面 ↗";
+    link.textContent = t("viewChannelSource", { label: L(channel, "label"), sub: L(channel, "sub") });
   }
 
   function renderChannelView() {
@@ -1404,6 +1924,16 @@
   }
 
   // ---- wire up ----
+  document.querySelectorAll("[data-lang]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var next = btn.getAttribute("data-lang");
+      if (next === LANG) return;
+      LANG = next;
+      try { localStorage.setItem("jisoo_lang", LANG); } catch (e) { /* private browsing etc. — language just won't stick across reloads */ }
+      applyStaticI18n();
+      renderAll();
+    });
+  });
   document.querySelectorAll("[data-convention]").forEach(function (btn) {
     btn.addEventListener("click", function () {
       state.convention = btn.getAttribute("data-convention");
@@ -1422,12 +1952,14 @@
     btn.addEventListener("click", function () { applyPreset(btn.getAttribute("data-preset")); renderChannelTable(); });
   });
   document.getElementById("fromInput").addEventListener("change", function (e) {
-    state.from = e.target.value ? new Date(e.target.value).toISOString() : null;
+    var d = parseKSTInput(e.target.value);
+    state.from = d ? d.toISOString() : null;
     document.querySelectorAll("[data-preset]").forEach(function (b) { b.setAttribute("aria-pressed", "false"); });
     renderChannelTable();
   });
   document.getElementById("toInput").addEventListener("change", function (e) {
-    state.to = e.target.value ? new Date(e.target.value).toISOString() : null;
+    var d = parseKSTInput(e.target.value);
+    state.to = d ? d.toISOString() : null;
     document.querySelectorAll("[data-preset]").forEach(function (b) { b.setAttribute("aria-pressed", "false"); });
     renderChannelTable();
   });
@@ -1438,12 +1970,14 @@
   });
 
   document.getElementById("siteFromInput").addEventListener("change", function (e) {
-    siteState.from = e.target.value ? new Date(e.target.value).toISOString() : null;
+    var d = parseKSTInput(e.target.value);
+    siteState.from = d ? d.toISOString() : null;
     document.querySelectorAll("[data-site-preset]").forEach(function (b) { b.setAttribute("aria-pressed", "false"); });
     renderSiteTable();
   });
   document.getElementById("siteToInput").addEventListener("change", function (e) {
-    siteState.to = e.target.value ? new Date(e.target.value).toISOString() : null;
+    var d = parseKSTInput(e.target.value);
+    siteState.to = d ? d.toISOString() : null;
     document.querySelectorAll("[data-site-preset]").forEach(function (b) { b.setAttribute("aria-pressed", "false"); });
     renderSiteTable();
   });
@@ -1485,7 +2019,7 @@
           sessionStorage.setItem("jisoo_gate_ok", "1");
           document.body.classList.remove("gate-locked");
         } else {
-          err.textContent = "密码不对,再试一次";
+          err.textContent = t("gateWrong");
           input.value = ""; input.focus();
         }
       });
@@ -1504,6 +2038,7 @@
     } catch (e) {
       console.warn("data.json not available, showing fallback snapshot:", e);
     }
+    applyStaticI18n();
     renderWatermark();
     initGate();
     renderAll();
