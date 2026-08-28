@@ -1410,6 +1410,29 @@
           "main": 1550
         }
       }
+    },
+    {
+      "ts": "2026-08-28T04:09:35.562Z",
+      "values": {
+        "ktown4u_echo": {
+          "set2cd": 7925,
+          "photobook": 3760,
+          "nfc": 6512,
+          "vinyl": 1218
+        },
+        "ktown4u_stardust": {
+          "set2cd": 2252,
+          "vinyl": 380,
+          "nfc": 1952,
+          "photobook": 1133
+        },
+        "yetimall_echo": {
+          "main": 5635
+        },
+        "yetimall_stardust": {
+          "main": 1578
+        }
+      }
     }
   ]
 }
