@@ -1644,10 +1644,15 @@
     tbody.innerHTML = rows.slice().reverse().map(function (snap) {
       var cells = TOTALED_CHANNELS.map(function (c) {
         var fresh = snap.freshIds.indexOf(c.id) !== -1;
-        // "fresh" = actually re-checked this run; otherwise it's carried forward from
-        // the last time this channel *was* checked — shown dimmer, never left blank
-        var style = fresh ? "" : ' style="color:var(--ink-mute)"';
-        return '<td class="mono"' + style + '>' + fmt(channelTotal(c, snap.values[c.id])) + "</td>";
+        // "fresh" = actually re-checked this run (e.g. a manual single-channel update
+        // like Japan Ktown4u only touches ktown4u_jp). Every other channel just carried
+        // its last known value forward — showing that repeated number here read as "this
+        // channel was re-checked and saw 0 growth", which isn't true, it just wasn't
+        // looked at this run. So untouched channels render as "—" instead of the number;
+        // the carried-forward value still feeds 全站合计/较上批次净增 above (that's still
+        // correct and intentional), it's only this per-channel breakdown that goes blank.
+        if (!fresh) return '<td class="mono" style="color:var(--ink-mute)">—</td>';
+        return '<td class="mono">' + fmt(channelTotal(c, snap.values[c.id])) + "</td>";
       }).join("");
       var d = deltaByTs[snap.ts];
       var deltaCell = d === null ? '<td class="mono col-divider" style="color:var(--ink-mute)">' + t("firstRecord") + '</td>' :
