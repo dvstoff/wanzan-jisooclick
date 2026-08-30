@@ -2833,6 +2833,29 @@
           "main": 2311
         }
       }
+    },
+    {
+      "ts": "2026-08-30T09:10:26.110Z",
+      "values": {
+        "ktown4u_echo": {
+          "set2cd": 9875,
+          "photobook": 5164,
+          "nfc": 8584,
+          "vinyl": 1413
+        },
+        "ktown4u_stardust": {
+          "set2cd": 2775,
+          "vinyl": 434,
+          "nfc": 2620,
+          "photobook": 1531
+        },
+        "yetimall_echo": {
+          "main": 12345
+        },
+        "yetimall_stardust": {
+          "main": 2312
+        }
+      }
     }
   ]
 }
