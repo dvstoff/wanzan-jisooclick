@@ -3432,6 +3432,20 @@
           "main": 324
         }
       }
+    },
+    {
+      "ts": "2026-08-31T12:52:14+08:00",
+      "values": {
+        "ktown4u_bp": {
+          "set2cd": 362,
+          "photobook": 282,
+          "nfc": 234,
+          "vinyl": 76
+        },
+        "yetimall_bp": {
+          "main": 237
+        }
+      }
     }
   ]
 }

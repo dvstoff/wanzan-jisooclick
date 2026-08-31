@@ -662,7 +662,8 @@
     { id: "stardust",  label: "StarDust 站子",     labelEn: "StarDust Site",     channelIds: ["ktown4u_stardust", "yetimall_stardust", "namilmarket_main"] },
     // Site's own display name is literally this watermark (a joke/anti-repost
     // username, appears on every one of its listing pages) — used as-is as the label.
-    { id: "heifen",    label: "职业黑粉操盘手吧",   labelEn: "“Professional Anti-Fan Ops” Site", channelIds: ["ktown4u_heifen", "yetimall_heifen"] }
+    { id: "heifen",    label: "职业黑粉操盘手吧",   labelEn: "“Professional Anti-Fan Ops” Site", channelIds: ["ktown4u_heifen", "yetimall_heifen"] },
+    { id: "bp",        label: "BLACKPINK吧官博",   labelEn: "BLACKPINK Bar (Weibo) Site",       channelIds: ["ktown4u_bp", "yetimall_bp"] }
   ];
   // channels with group:"reference" are shown but NEVER summed into any total —
   // used for the Japan Ktown4u link, which is JP sales, not China sales.
@@ -686,6 +687,12 @@
     { id: "vinyl",     name: "Vinyl Ver.",                 price: 188.21, units: 1, vinyl: true  },
     { id: "nfc",       name: "Baby Bear NFC Ver.",         price: 151.17, units: 1, vinyl: false },
     { id: "photobook", name: "Photobook Ver.",             price: 63.07,  units: 1, vinyl: false }
+  ];
+  var KTOWN4U_ITEMS_BP = [
+    { id: "set2cd",    name: "2CD 套装（NFC+Photobook）", nameEn: "2CD Set (NFC+Photobook)", price: 214.24, units: 2, vinyl: false },
+    { id: "photobook", name: "Photobook Ver.",             price: 63.07,  units: 1, vinyl: false },
+    { id: "nfc",       name: "Baby Bear NFC Ver.",         price: 151.17, units: 1, vinyl: false },
+    { id: "vinyl",     name: "Vinyl Ver.",                 price: 188.21, units: 1, vinyl: true  }
   ];
 
   var CHANNELS = [
@@ -722,6 +729,16 @@
     {
       id: "yetimall_heifen", group: "heifen", label: "Yetimall", sub: "职业黑粉操盘手吧", subEn: "“Pro Anti-Fan Ops”",
       sourceUrl: "https://m.yetimall.store/h5/#/goods?gid=32423",
+      items: [{ id: "main", name: "0825平台特典合集（两版本合计）", nameEn: "0825 platform bonus bundle (both versions combined)", price: 62.00, units: 1, vinyl: false }]
+    },
+    {
+      id: "ktown4u_bp", group: "bp", label: "Ktown4u", sub: "BLACKPINK吧官博", subEn: "BLACKPINK Bar (Weibo)",
+      sourceUrl: "https://cn.ktown4u.com/eventinfo?eve_no=44511274&biz_no=599",
+      items: KTOWN4U_ITEMS_BP
+    },
+    {
+      id: "yetimall_bp", group: "bp", label: "Yetimall", sub: "BLACKPINK吧官博", subEn: "BLACKPINK Bar (Weibo)",
+      sourceUrl: "https://m.yetimall.store/h5/#/goods?gid=32424",
       items: [{ id: "main", name: "0825平台特典合集（两版本合计）", nameEn: "0825 platform bonus bundle (both versions combined)", price: 62.00, units: 1, vinyl: false }]
     },
     {
@@ -1049,6 +1066,11 @@
   // next time they load the page: it reappears automatically once UPDATE_LOG[0].date is
   // newer than whatever date the viewer last dismissed (tracked in their own localStorage).
   var UPDATE_LOG = [
+    {
+      date: "2026-08-31",
+      zh: "📢 新增两个团站渠道：「职业黑粉操盘手吧」和「BLACKPINK吧官博」（各含 Ktown4u+Yetimall），已计入全站总销量。更正一下 Namilmarket 的情况：自 8/26 起没有更新，其实是它的团购已经截止,不是网站故障或抓取出错——数字会一直停在最后一次成交结果上,这是正常情况,以后也不会再变了。",
+      en: "📢 Added two more fan-station channels: “职业黑粉操盘手吧” and “BLACKPINK吧官博” (each covering Ktown4u + Yetimall), both now counted in the site-wide total. Correction on Namilmarket: it stopped updating on 8/26 because its group-buy has closed, not because of a site outage or scraping bug — the number is done moving and will just stay at its final reading."
+    },
     {
       date: "2026-08-28",
       zh: "⚠️ Namilmarket（StarDust 站子的一部分）自 8/26 起数据没有更新——不是抓取出错,是它官网本身暂时打不开,数字先停在最后一次成功抓取的结果上,网站恢复访问后会自动续上。另外新增了页面右上角的提问板块,以及每日净增图表、中/英文切换、全站时间统一为韩国时间（KST）。",
