@@ -372,8 +372,9 @@
   }
   .qa-item .qa-q { font-size: 13.5px; font-weight: 700; color: var(--ink); }
   .qa-item .qa-q::before { content: "Q. "; color: var(--accent); }
-  .qa-item .qa-a { font-size: 13.5px; color: var(--ink-dim); margin-top: 8px; }
+  .qa-item .qa-a { font-size: 15.5px; font-weight: 700; color: var(--ink); margin-top: 8px; }
   .qa-item .qa-a::before { content: "A. "; color: var(--accent); font-weight: 700; }
+  .qa-item .qa-a:first-child { margin-top: 0; }
   .qa-item .qa-date { font-size: 11px; color: var(--ink-mute); margin-top: 8px; }
 
   /* forecast */
@@ -1281,10 +1282,8 @@
   var QA_LOG = [
     {
       date: "2026-08-31",
-      q: "能不能把「职业黑粉操盘手吧」和「BLACKPINK吧官博」这两个团站的销量也加进来？",
       a: "应提问要求，我加上了，两个团站的 Ktown4u 和 Yetimall 销量，现在已经计入全站总销量。",
-      qEn: "Could you add the sales from the “职业黑粉操盘手吧” and “BLACKPINK吧官博” fan stations too?",
-      aEn: "Per this request, I've added both stations' Ktown4u and Yetimall sales — they're now counted in the site-wide total."
+      aEn: "Per a reader's request, I've added both stations' Ktown4u and Yetimall sales — they're now counted in the site-wide total."
     }
   ];
   function renderQaList() {
@@ -1294,7 +1293,10 @@
     el.innerHTML = QA_LOG.map(function (item) {
       var q = LANG === "en" && item.qEn ? item.qEn : item.q;
       var a = LANG === "en" && item.aEn ? item.aEn : item.a;
-      return '<div class="qa-item"><div class="qa-q">' + q + '</div><div class="qa-a">' + a + '</div>' +
+      // q is optional — some entries are just an announcement (no accurate/quotable
+      // question to show), in which case only the answer line renders.
+      return '<div class="qa-item">' + (q ? '<div class="qa-q">' + q + '</div>' : '') +
+        '<div class="qa-a">' + a + '</div>' +
         '<div class="qa-date">' + item.date + '</div></div>';
     }).join("");
   }
