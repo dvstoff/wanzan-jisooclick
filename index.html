@@ -347,6 +347,22 @@
   .ask-row .icon-btn { justify-content: center; }
   .ask-note { font-size: 11px; color: var(--ink-mute); margin: 10px 0 0; }
   .ask-status { font-size: 12.5px; margin: 8px 0 0; min-height: 16px; }
+
+  /* poll: a small yes/no vote + open-ended suggestion box, same card language as ask-card */
+  .poll-card { margin-top: 16px; }
+  .poll-question { font-size: 13px; color: var(--ink); margin: 0 0 10px; line-height: 1.5; }
+  .poll-buttons { display: flex; gap: 8px; }
+  .poll-buttons .icon-btn { flex: 1; justify-content: center; }
+  .poll-buttons .icon-btn[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .poll-result { font-size: 12.5px; color: var(--ink-dim); margin: 10px 0 0; min-height: 16px; }
+  .poll-suggest-form { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--accent); }
+  .poll-suggest-form textarea {
+    width: 100%; font: inherit; font-size: 13px; padding: 9px 11px; border-radius: 10px;
+    border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink);
+    resize: vertical; min-height: 48px;
+  }
+  .poll-suggest-form textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .poll-suggest-form .icon-btn { margin-top: 8px; width: 100%; justify-content: center; }
   .ask-status.ok { color: var(--good); }
   .ask-status.err { color: #c0392b; }
   .qa-list { display: flex; flex-direction: column; gap: 10px; }
@@ -471,6 +487,21 @@
           </div>
           <p class="ask-note" data-i18n="askNote">提交后只有我能看到,回复了会把问题和回答一起整理进下面的"问答"里,不会直接公开你的原始留言</p>
           <p class="ask-status" id="askStatus"></p>
+        </form>
+      </div>
+
+      <div class="ask-card poll-card" id="pollCard">
+        <p class="ask-title" data-i18n="pollTitle">🗳️ 投票：要不要加流媒体数据？</p>
+        <p class="poll-question" data-i18n="pollQuestion">是否需要我加上 Apple Music / Spotify 的流媒体销量数据？</p>
+        <div class="poll-buttons" id="pollButtons">
+          <button type="button" class="icon-btn" data-vote="yes" data-i18n="pollYes">需要</button>
+          <button type="button" class="icon-btn" data-vote="no" data-i18n="pollNo">不需要</button>
+        </div>
+        <p class="poll-result" id="pollResult"></p>
+        <form id="suggestForm" class="poll-suggest-form">
+          <textarea id="suggestText" name="suggestion" rows="2" data-i18n-placeholder="pollSuggestPlaceholder" placeholder="有什么想法尽管提，我会改进的"></textarea>
+          <button type="submit" class="icon-btn primary" id="suggestSubmit" data-i18n="pollSuggestSubmit">提交想法</button>
+          <p class="ask-status" id="pollSuggestStatus"></p>
         </form>
       </div>
     </aside>
@@ -800,6 +831,19 @@
       askOk: "提交成功,谢谢提问！我看到后会尽快回复,回答了会出现在下面",
       askErr: "提交失败,可以稍后再试一次,或者换个方式联系我",
       askEmpty: "请先写点什么再提交",
+      pollTitle: "🗳️ 投票：要不要加流媒体数据？",
+      pollQuestion: "是否需要我加上 Apple Music / Spotify 的流媒体销量数据？",
+      pollYes: "需要",
+      pollNo: "不需要",
+      pollThanksYes: "谢谢投票！已记录你投的「需要」，我会考虑加上。",
+      pollThanksNo: "谢谢投票！已记录你投的「不需要」。",
+      pollVoteErr: "投票提交失败,可以稍后再试一次",
+      pollSuggestPlaceholder: "有什么想法尽管提，我会改进的",
+      pollSuggestSubmit: "提交想法",
+      pollSuggestSending: "提交中…",
+      pollSuggestOk: "谢谢，我看到了！",
+      pollSuggestErr: "提交失败,可以稍后再试一次",
+      pollSuggestEmpty: "请先写点什么再提交",
       sectionQaList: "大家问过的问题",
       qaEmpty: "还没有公开的问答,欢迎在上面提问,我回复了会出现在这里",
       chipRelease: "发行日 <b>2026-09-04</b> · <b id=\"dday\">—</b>",
@@ -923,6 +967,19 @@
       askOk: "Sent, thanks for asking! I'll get to it soon — the answer will show up below once I reply.",
       askErr: "Couldn't send that — try again in a bit, or reach me another way",
       askEmpty: "Write something before submitting",
+      pollTitle: "🗳️ Poll: add streaming numbers?",
+      pollQuestion: "Would you like Apple Music / Spotify streaming sales added to this site?",
+      pollYes: "Yes, add it",
+      pollNo: "No thanks",
+      pollThanksYes: "Thanks for voting! Your “yes” is recorded — I'll consider adding it.",
+      pollThanksNo: "Thanks for voting! Your “no” is recorded.",
+      pollVoteErr: "Couldn't submit that vote — try again in a bit",
+      pollSuggestPlaceholder: "Any suggestions? I read everything and will keep improving",
+      pollSuggestSubmit: "Submit suggestion",
+      pollSuggestSending: "Sending…",
+      pollSuggestOk: "Thanks, got it!",
+      pollSuggestErr: "Couldn't send that — try again in a bit",
+      pollSuggestEmpty: "Write something before submitting",
       sectionQaList: "Questions people have asked",
       qaEmpty: "No public Q&A yet — ask something above and it'll show up here once I reply",
       chipRelease: "Release <b>2026-09-04</b> · <b id=\"dday\">—</b>",
@@ -1059,6 +1116,7 @@
     });
     renderNoticeBanner();
     renderQaList();
+    renderPollState();
   }
 
   // Running changelog of user-visible fixes/changes, newest first. Add a new entry here
@@ -1068,8 +1126,8 @@
   var UPDATE_LOG = [
     {
       date: "2026-08-31",
-      zh: "📢 新增两个团站渠道：「职业黑粉操盘手吧」和「BLACKPINK吧官博」（各含 Ktown4u+Yetimall），已计入全站总销量。更正一下 Namilmarket 的情况：自 8/26 起没有更新，其实是它的团购已经截止,不是网站故障或抓取出错——数字会一直停在最后一次成交结果上,这是正常情况,以后也不会再变了。",
-      en: "📢 Added two more fan-station channels: “职业黑粉操盘手吧” and “BLACKPINK吧官博” (each covering Ktown4u + Yetimall), both now counted in the site-wide total. Correction on Namilmarket: it stopped updating on 8/26 because its group-buy has closed, not because of a site outage or scraping bug — the number is done moving and will just stay at its final reading."
+      zh: "📢 应提问要求，新增两个团站渠道：「职业黑粉操盘手吧」和「BLACKPINK吧官博」（各含 Ktown4u+Yetimall），已计入全站总销量。下面新增了一个小投票：要不要加 Apple Music / Spotify 的流媒体销量？也欢迎在投票那里留言提任何想法，我会尽量改进。提醒：全站所有时间均为韩国时间（KST，UTC+9）。",
+      en: "📢 Per a reader's request, added two more fan-station channels: “职业黑粉操盘手吧” and “BLACKPINK吧官博” (each covering Ktown4u + Yetimall), both now counted in the site-wide total. Also added a quick poll below — should Apple Music / Spotify streaming numbers be added? Feel free to leave any other suggestions there too, I'll keep improving the site. Reminder: every time shown on this site is Korea Standard Time (KST, UTC+9)."
     },
     {
       date: "2026-08-28",
@@ -1138,11 +1196,96 @@
     });
   });
 
+  // ---- streaming-data poll + open suggestion box ----
+  // Same private-relay pattern as the ask box above (Formspree, owner-only inbox) —
+  // no backend here, so there's no live tally to show; a single vote per browser is
+  // remembered in localStorage just to stop the same visitor re-clicking a dozen times,
+  // not as real fraud protection. _subject tags each submission so it's easy to tell
+  // votes and suggestions apart from questions in the inbox.
+  var POLL_VOTE_KEY = "jisoo_poll_streaming_vote";
+  function renderPollState() {
+    var resultEl = document.getElementById("pollResult");
+    var buttonsEl = document.getElementById("pollButtons");
+    var voted = null;
+    try { voted = localStorage.getItem(POLL_VOTE_KEY); } catch (e) { /* ignore */ }
+    if (voted === "yes" || voted === "no") {
+      buttonsEl.querySelectorAll("button").forEach(function (b) {
+        b.disabled = true;
+        b.setAttribute("aria-pressed", b.getAttribute("data-vote") === voted ? "true" : "false");
+      });
+      resultEl.textContent = voted === "yes" ? t("pollThanksYes") : t("pollThanksNo");
+    } else {
+      buttonsEl.querySelectorAll("button").forEach(function (b) { b.disabled = false; b.setAttribute("aria-pressed", "false"); });
+      resultEl.textContent = "";
+    }
+  }
+  document.getElementById("pollButtons").addEventListener("click", function (e) {
+    var btn = e.target.closest("button[data-vote]");
+    if (!btn || btn.disabled) return;
+    var vote = btn.getAttribute("data-vote");
+    var resultEl = document.getElementById("pollResult");
+    document.getElementById("pollButtons").querySelectorAll("button").forEach(function (b) { b.disabled = true; });
+    var fd = new FormData();
+    fd.append("poll", "Apple Music / Spotify streaming data?");
+    fd.append("vote", vote);
+    fd.append("_subject", "[投票] 流媒体数据 — " + vote);
+    fetch(ASK_FORM_ENDPOINT, { method: "POST", headers: { "Accept": "application/json" }, body: fd })
+      .then(function (res) {
+        if (res.ok) {
+          try { localStorage.setItem(POLL_VOTE_KEY, vote); } catch (e2) { /* ignore */ }
+          renderPollState();
+        } else {
+          resultEl.textContent = t("pollVoteErr");
+          document.getElementById("pollButtons").querySelectorAll("button").forEach(function (b) { b.disabled = false; });
+        }
+      }).catch(function () {
+        resultEl.textContent = t("pollVoteErr");
+        document.getElementById("pollButtons").querySelectorAll("button").forEach(function (b) { b.disabled = false; });
+      });
+  });
+  renderPollState();
+
+  document.getElementById("suggestForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var statusEl = document.getElementById("pollSuggestStatus");
+    var text = document.getElementById("suggestText").value.trim();
+    if (!text) { statusEl.textContent = t("pollSuggestEmpty"); statusEl.className = "ask-status err"; return; }
+    var submitBtn = document.getElementById("suggestSubmit");
+    submitBtn.disabled = true;
+    statusEl.textContent = t("pollSuggestSending");
+    statusEl.className = "ask-status";
+    var fd = new FormData();
+    fd.append("suggestion", text);
+    fd.append("_subject", "[建议] 网站反馈");
+    fetch(ASK_FORM_ENDPOINT, { method: "POST", headers: { "Accept": "application/json" }, body: fd })
+      .then(function (res) {
+        submitBtn.disabled = false;
+        if (res.ok) {
+          statusEl.textContent = t("pollSuggestOk");
+          statusEl.className = "ask-status ok";
+          document.getElementById("suggestForm").reset();
+        } else {
+          statusEl.textContent = t("pollSuggestErr");
+          statusEl.className = "ask-status err";
+        }
+      }).catch(function () {
+        submitBtn.disabled = false;
+        statusEl.textContent = t("pollSuggestErr");
+        statusEl.className = "ask-status err";
+      });
+  });
+
   // Curated Q&A shown publicly — a question only appears here once *I've* added the
   // matching answer; raw submissions from the form above never get auto-published.
   // Add new entries at the front (newest first) as fans ask and I answer.
   var QA_LOG = [
-    // { date: "2026-08-28", q: "...", a: "...", qEn: "...", aEn: "..." },
+    {
+      date: "2026-08-31",
+      q: "能不能把「职业黑粉操盘手吧」和「BLACKPINK吧官博」这两个团站的销量也加进来？",
+      a: "应提问要求，我加上了，两个团站的 Ktown4u 和 Yetimall 销量，现在已经计入全站总销量。",
+      qEn: "Could you add the sales from the “职业黑粉操盘手吧” and “BLACKPINK吧官博” fan stations too?",
+      aEn: "Per this request, I've added both stations' Ktown4u and Yetimall sales — they're now counted in the site-wide total."
+    }
   ];
   function renderQaList() {
     var el = document.getElementById("qaList");
