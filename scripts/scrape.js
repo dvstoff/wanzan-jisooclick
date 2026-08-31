@@ -216,12 +216,23 @@ async function scrapeChannel(browser, channel) {
         // terms-and-conditions text above the product grid, so a fixed 3000px stopped
         // short of the cards entirely — same symptom as above: fanClubProductSales came
         // back with real numbers, but the cards' own text never rendered because they
-        // were never scrolled into view in the first place. Scroll to the page's actual
-        // height instead of guessing a number that only fit some events.
-        const scrollCeiling = await page.evaluate(() => document.body.scrollHeight).catch(() => 3000);
-        for (let y = 250; y <= scrollCeiling; y += rand(150, 260)) {
+        // were never scrolled into view in the first place.
+        // A single scrollHeight read *before* scrolling starts isn't enough either — on
+        // 职业黑粉操盘手吧/BLACKPINK吧官博 specifically, the page still measured a short
+        // scrollHeight at that point (product grid not mounted yet) and every attempt
+        // scrolled to that same too-low ceiling and stopped, body text frozen the whole
+        // time. Re-read scrollHeight periodically *while* scrolling instead, so the
+        // ceiling grows once the grid actually mounts further down than the page
+        // initially reported.
+        let y = 250;
+        let scrollCeiling = await page.evaluate(() => document.body.scrollHeight).catch(() => 3000);
+        for (let i = 0; y <= scrollCeiling && i < 60; i++) {
           await page.mouse.wheel(0, rand(140, 260));
           await page.waitForTimeout(rand(220, 480));
+          y += 200;
+          if (i % 4 === 3) {
+            scrollCeiling = await page.evaluate(() => document.body.scrollHeight).catch(() => scrollCeiling);
+          }
         }
         // settle near the bottom, then sweep back up slowly — some cards' observers
         // only fire on the way past a second time
