@@ -1410,15 +1410,17 @@
   function toKST(ts) {
     return new Date(new Date(ts).getTime() + KST_OFFSET_MS);
   }
-  // The hourly scrape is triggered on the hour but takes a few minutes to actually run
-  // (~9 min observed) before it commits a batch, so the job meant to capture a day's
-  // closing state can land with a timestamp a few minutes into the *next* KST day.
-  // Day-bucketing (which day a batch counts toward) backdates by this grace window
-  // before reading the KST calendar date, so that trailing batch still closes out the
-  // day it was actually scraped for instead of falsely opening the next one. Genuinely
-  // exact display of "what time is it in KST" (toLocalInput, tooltips, etc.) is
-  // unaffected — this only shifts *which day something is bucketed under*.
-  var DAY_BOUNDARY_GRACE_MS = 15 * 60000;
+  // The hourly scrape is triggered on the hour but takes a while to actually run before
+  // it commits a batch — originally ~9 min with 6 channels, now ~15-20 min with 10 (see
+  // scripts/scrape.js CHANNELS) — so the job meant to capture a day's closing state can
+  // land with a timestamp well into the *next* KST day. Day-bucketing (which day a batch
+  // counts toward) backdates by this grace window before reading the KST calendar date,
+  // so that trailing batch still closes out the day it was actually scraped for instead
+  // of falsely opening the next one. Genuinely exact display of "what time is it in KST"
+  // (toLocalInput, tooltips, etc.) is unaffected — this only shifts *which day something
+  // is bucketed under*. Keep this ≥ how long a run can actually take (see the workflow's
+  // timeout-minutes) or a slow-but-successful midnight run stops getting caught by it.
+  var DAY_BOUNDARY_GRACE_MS = 25 * 60000;
   function toKSTDay(ts) {
     return toKST(new Date(ts).getTime() - DAY_BOUNDARY_GRACE_MS);
   }
