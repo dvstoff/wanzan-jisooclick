@@ -3418,6 +3418,20 @@
           "main": 2339
         }
       }
+    },
+    {
+      "ts": "2026-08-31T12:34:01+08:00",
+      "values": {
+        "ktown4u_heifen": {
+          "set2cd": 249,
+          "vinyl": 55,
+          "nfc": 369,
+          "photobook": 245
+        },
+        "yetimall_heifen": {
+          "main": 324
+        }
+      }
     }
   ]
 }

@@ -659,7 +659,10 @@
   // omit them on anything that's already language-neutral (proper nouns, "Ver.", "(JPY)").
   var GROUPS = [
     { id: "echo",      label: "KimJisooEcho 站子", labelEn: "KimJisooEcho Site", channelIds: ["ktown4u_echo", "yetimall_echo"] },
-    { id: "stardust",  label: "StarDust 站子",     labelEn: "StarDust Site",     channelIds: ["ktown4u_stardust", "yetimall_stardust", "namilmarket_main"] }
+    { id: "stardust",  label: "StarDust 站子",     labelEn: "StarDust Site",     channelIds: ["ktown4u_stardust", "yetimall_stardust", "namilmarket_main"] },
+    // Site's own display name is literally this watermark (a joke/anti-repost
+    // username, appears on every one of its listing pages) — used as-is as the label.
+    { id: "heifen",    label: "职业黑粉操盘手吧",   labelEn: "“Professional Anti-Fan Ops” Site", channelIds: ["ktown4u_heifen", "yetimall_heifen"] }
   ];
   // channels with group:"reference" are shown but NEVER summed into any total —
   // used for the Japan Ktown4u link, which is JP sales, not China sales.
@@ -677,6 +680,12 @@
     { id: "vinyl",     name: "Vinyl Ver.",                 price: 188.00, units: 1, vinyl: true  },
     { id: "nfc",       name: "Baby Bear NFC Ver.",         price: 151.00, units: 1, vinyl: false },
     { id: "photobook", name: "Photobook Ver.",             price: 63.00,  units: 1, vinyl: false }
+  ];
+  var KTOWN4U_ITEMS_HEIFEN = [
+    { id: "set2cd",    name: "2CD 套装（NFC+Photobook）", nameEn: "2CD Set (NFC+Photobook)", price: 214.24, units: 2, vinyl: false },
+    { id: "vinyl",     name: "Vinyl Ver.",                 price: 188.21, units: 1, vinyl: true  },
+    { id: "nfc",       name: "Baby Bear NFC Ver.",         price: 151.17, units: 1, vinyl: false },
+    { id: "photobook", name: "Photobook Ver.",             price: 63.07,  units: 1, vinyl: false }
   ];
 
   var CHANNELS = [
@@ -704,6 +713,16 @@
       id: "namilmarket_main", group: "stardust", label: "Namilmarket", sub: "StarDust",
       sourceUrl: "https://www.namilmarket.com/2608jslz0825-2",
       items: [{ id: "main", name: "PB ver.（NFC ver. 未核实）", nameEn: "PB ver. (NFC ver. unverified)", price: 63.00, units: 1, vinyl: false }]
+    },
+    {
+      id: "ktown4u_heifen", group: "heifen", label: "Ktown4u", sub: "职业黑粉操盘手吧", subEn: "“Pro Anti-Fan Ops”",
+      sourceUrl: "https://cn.ktown4u.com/eventinfo?eve_no=44511290&biz_no=599",
+      items: KTOWN4U_ITEMS_HEIFEN
+    },
+    {
+      id: "yetimall_heifen", group: "heifen", label: "Yetimall", sub: "职业黑粉操盘手吧", subEn: "“Pro Anti-Fan Ops”",
+      sourceUrl: "https://m.yetimall.store/h5/#/goods?gid=32423",
+      items: [{ id: "main", name: "0825平台特典合集（两版本合计）", nameEn: "0825 platform bonus bundle (both versions combined)", price: 62.00, units: 1, vinyl: false }]
     },
     {
       id: "ktown4u_jp", group: "reference", label: "Ktown4u", sub: "日本连合", subEn: "Japan Union",
@@ -1694,7 +1713,13 @@
 
   // ---- channel tabs (grouped) ----
   function renderTabPills(channelIds) {
-    var latest = BATCHES[BATCHES.length - 1];
+    // Forward-filled, not the raw last batch: a single-channel update (manual Japan
+    // update, or any partial run) makes BATCHES[last].values only have that one
+    // channel's key, which would blank out every other channel's pill number until
+    // the next batch that happens to re-touch it. buildTimeline() carries each
+    // channel's last known value forward, same fix as renderSiteSummary already uses.
+    var timeline = buildTimeline();
+    var latest = timeline[timeline.length - 1];
     return channelIds.map(function (cid) {
       var ch = channelById(cid);
       var v = latest ? channelTotal(ch, latest.values[cid]) : null;
