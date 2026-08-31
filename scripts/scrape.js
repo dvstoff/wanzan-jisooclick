@@ -93,6 +93,25 @@ const CHANNELS = [
     parse: parseYetimall,
     retry: true,
   },
+  {
+    id: "ktown4u_bp",
+    platform: "ktown4u",
+    url: "https://cn.ktown4u.com/eventinfo?eve_no=44511274&biz_no=599",
+    itemIds: ["set2cd", "photobook", "nfc", "vinyl"],
+    parse: parseKtown4uChina,
+    countPattern: /售销记录/,
+    scrollToLoad: true,
+    watchGraphql: true,
+    retry: true,
+  },
+  {
+    id: "yetimall_bp",
+    platform: "other",
+    url: "https://m.yetimall.store/h5/#/goods?gid=32424",
+    itemIds: ["main"],
+    parse: parseYetimall,
+    retry: true,
+  },
 ];
 
 // CLI filter: `node scripts/scrape.js --only=ktown4u` runs just those channels.
