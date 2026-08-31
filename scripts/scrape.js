@@ -241,6 +241,20 @@ async function scrapeChannel(browser, channel) {
           await page.mouse.wheel(0, -rand(180, 320));
           await page.waitForTimeout(rand(180, 400));
         }
+        // Belt-and-suspenders for 职业黑粉操盘手吧/BLACKPINK吧官博 specifically: even
+        // with the fixes above, plain wheel-scrolling never got every card's real text
+        // to render on these two — body text stayed frozen across every attempt despite
+        // scrollTop genuinely moving. Rather than keep hoping continuous scrolling
+        // sweeps over each card, scroll every price element into view directly via
+        // Playwright's own scrollIntoViewIfNeeded (goes through CDP, not a synthesized
+        // wheel event) — deterministic per-card instead of relying on scroll coverage.
+        try {
+          const priceLocators = await page.locator("text=/^(RMB|¥)$/").all();
+          for (const loc of priceLocators) {
+            await loc.scrollIntoViewIfNeeded({ timeout: 3000 }).catch(() => {});
+            await page.waitForTimeout(rand(300, 600));
+          }
+        } catch (e) { /* best-effort, never fatal to the attempt */ }
       }
       if (channel.watchGraphql) {
         // the exact call that carries sale counts, confirmed by manual inspection earlier
