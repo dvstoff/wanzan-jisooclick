@@ -197,16 +197,29 @@ async function scrapeChannel(browser, channel) {
         // then each rendered product CARD independently fetches its own sale count
         // (fanClubProductSales) once *that specific card* scrolls into view. Scrolling
         // before the cards exist in the DOM triggers nothing, so wait for a real price
-        // ("RMB123.00") to appear — proof the cards have mounted — before scrolling.
+        // to appear — proof the cards have mounted — before scrolling. China pages price
+        // in RMB, Japan in ¥ — matching only "RMB" meant this wait silently timed out
+        // on every ktown4u_jp attempt (¥ never matches /RMB/), so scrolling started
+        // before the cards existed and never picked anything up — same failure shape as
+        // fanClubProductSales quietly returning real numbers while document.body.innerText
+        // never grows past the boilerplate terms text, attempt after attempt.
         await page.waitForFunction(
-          () => /RMB\s*[\d.]+/.test(document.body.innerText),
+          () => /RMB\s*[\d.]+|¥\s*[\d,]+/.test(document.body.innerText),
           { timeout: 10000 }
         ).catch(() => {});
         // move the mouse across the page first — a page that's only ever been
         // scrolled programmatically, never pointed at, is itself a bot tell
         await page.mouse.move(200 + rand(0, 100), 200 + rand(0, 100));
         await page.mouse.move(600 + rand(0, 200), 400 + rand(0, 150), { steps: rand(8, 20) });
-        for (let y = 250; y <= 3000; y += rand(150, 260)) {
+        // Ceiling used to be a fixed 3000px, sized for the original two China event
+        // pages. Newer events (added fan stations, the Japan page) carry noticeably more
+        // terms-and-conditions text above the product grid, so a fixed 3000px stopped
+        // short of the cards entirely — same symptom as above: fanClubProductSales came
+        // back with real numbers, but the cards' own text never rendered because they
+        // were never scrolled into view in the first place. Scroll to the page's actual
+        // height instead of guessing a number that only fit some events.
+        const scrollCeiling = await page.evaluate(() => document.body.scrollHeight).catch(() => 3000);
+        for (let y = 250; y <= scrollCeiling; y += rand(150, 260)) {
           await page.mouse.wheel(0, rand(140, 260));
           await page.waitForTimeout(rand(220, 480));
         }
