@@ -348,21 +348,31 @@
   .ask-note { font-size: 11px; color: var(--ink-mute); margin: 10px 0 0; }
   .ask-status { font-size: 12.5px; margin: 8px 0 0; min-height: 16px; }
 
-  /* poll: a small yes/no vote + open-ended suggestion box, same card language as ask-card */
-  .poll-card { margin-top: 16px; }
-  .poll-question { font-size: 13px; color: var(--ink); margin: 0 0 10px; line-height: 1.5; }
-  .poll-buttons { display: flex; gap: 8px; }
-  .poll-buttons .icon-btn { flex: 1; justify-content: center; }
-  .poll-buttons .icon-btn[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
-  .poll-result { font-size: 12.5px; color: var(--ink-dim); margin: 10px 0 0; min-height: 16px; }
-  .poll-suggest-form { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--accent); }
-  .poll-suggest-form textarea {
-    width: 100%; font: inherit; font-size: 13px; padding: 9px 11px; border-radius: 10px;
-    border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink);
-    resize: vertical; min-height: 48px;
+  /* poll: full-width horizontal bar (question + vote + suggestion all in one row)
+     instead of a stacked card — a yes/no vote and a one-line suggestion box don't
+     need the sidebar's full vertical card treatment, and this reads as one compact
+     strip instead of eating a screen's worth of the narrow sidebar. Wraps to stacked
+     rows only once the viewport is too narrow to fit it all on one line. */
+  .poll-section {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 12px 20px;
+    background: var(--accent-wash); border: 1px solid var(--accent); border-radius: 16px;
+    padding: 14px 18px; margin-bottom: 10px;
   }
-  .poll-suggest-form textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
-  .poll-suggest-form .icon-btn { margin-top: 8px; width: 100%; justify-content: center; }
+  .poll-info { flex: 1 1 220px; min-width: 180px; }
+  .poll-title { font-size: 13px; font-weight: 700; color: var(--accent); margin: 0 0 3px; }
+  .poll-question { font-size: 13px; color: var(--ink); margin: 0; line-height: 1.4; }
+  .poll-buttons { display: flex; gap: 8px; flex: 0 0 auto; }
+  .poll-buttons .icon-btn { padding: 8px 16px; }
+  .poll-buttons .icon-btn[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .poll-suggest-form { display: flex; gap: 8px; flex: 1 1 260px; min-width: 220px; }
+  .poll-suggest-form input[type="text"] {
+    flex: 1; min-width: 0; font: inherit; font-size: 13px; padding: 8px 11px; border-radius: 10px;
+    border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink);
+  }
+  .poll-suggest-form input[type="text"]:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .poll-suggest-form .icon-btn { flex: 0 0 auto; white-space: nowrap; }
+  .poll-status-row { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12.5px; margin: 0 0 28px; min-height: 16px; }
+  .poll-status-row .poll-result { color: var(--ink-dim); }
   .ask-status.ok { color: var(--good); }
   .ask-status.err { color: #c0392b; }
   .qa-list { display: flex; flex-direction: column; gap: 10px; }
@@ -490,23 +500,27 @@
           <p class="ask-status" id="askStatus"></p>
         </form>
       </div>
-
-      <div class="ask-card poll-card" id="pollCard">
-        <p class="ask-title" data-i18n="pollTitle">🗳️ 投票：要不要加流媒体数据？</p>
-        <p class="poll-question" data-i18n="pollQuestion">是否需要我加上 Apple Music / Spotify 的流媒体销量数据？</p>
-        <div class="poll-buttons" id="pollButtons">
-          <button type="button" class="icon-btn" data-vote="yes" data-i18n="pollYes">需要</button>
-          <button type="button" class="icon-btn" data-vote="no" data-i18n="pollNo">不需要</button>
-        </div>
-        <p class="poll-result" id="pollResult"></p>
-        <form id="suggestForm" class="poll-suggest-form">
-          <textarea id="suggestText" name="suggestion" rows="2" data-i18n-placeholder="pollSuggestPlaceholder" placeholder="有什么想法尽管提，我会改进的"></textarea>
-          <button type="submit" class="icon-btn primary" id="suggestSubmit" data-i18n="pollSuggestSubmit">提交想法</button>
-          <p class="ask-status" id="pollSuggestStatus"></p>
-        </form>
-      </div>
     </aside>
   </div>
+
+  <section class="poll-section" id="pollCard">
+    <div class="poll-info">
+      <p class="poll-title" data-i18n="pollTitle">🗳️ 投票：要不要加流媒体数据？</p>
+      <p class="poll-question" data-i18n="pollQuestion">是否需要我加上 Apple Music / Spotify 的流媒体销量数据？</p>
+    </div>
+    <div class="poll-buttons" id="pollButtons">
+      <button type="button" class="icon-btn" data-vote="yes" data-i18n="pollYes">需要</button>
+      <button type="button" class="icon-btn" data-vote="no" data-i18n="pollNo">不需要</button>
+    </div>
+    <form id="suggestForm" class="poll-suggest-form">
+      <input type="text" id="suggestText" name="suggestion" data-i18n-placeholder="pollSuggestPlaceholder" placeholder="有什么想法尽管提，我会改进的">
+      <button type="submit" class="icon-btn primary" id="suggestSubmit" data-i18n="pollSuggestSubmit">提交想法</button>
+    </form>
+  </section>
+  <p class="poll-status-row">
+    <span class="poll-result" id="pollResult"></span>
+    <span class="ask-status" id="pollSuggestStatus"></span>
+  </p>
 
   <section>
     <p class="section-label" data-i18n="sectionQaList">大家问过的问题</p>
