@@ -4,8 +4,10 @@ on:
   schedule:
     # Scheduled at :55 rather than the top of the hour on purpose: every cron job on
     # GitHub piles up at :00, which is exactly when scheduled runs get delayed or
-    # dropped. :55 dodges that jam — and since a run itself takes ~8-9 minutes, it
-    # lands right around the new hour, so the data still reads as "fresh this hour".
+    # dropped. :55 dodges that jam — and since a run takes ~15-20 minutes now (10
+    # channels, up from the original 6 — see CHANNELS in scripts/scrape.js), it lands
+    # roughly :10-:20 into the new hour; see DAY_BOUNDARY_GRACE_MS in index.html,
+    # which has to stay wide enough to cover however long a run actually takes.
     - cron: "55 * * * *"
   workflow_dispatch: {} # lets you trigger a run manually from the Actions tab
 
@@ -19,7 +21,13 @@ concurrency:
 jobs:
   scrape:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # Was 15 — fine for the original 6 channels (~9 min typical), but every run has
+    # been getting killed by this timeout since a 4th and 5th Ktown4u+Yetimall pair
+    # ("职业黑粉操盘手吧", "BLACKPINK吧官博") were added on top of the original 6,
+    # pushing typical runs past 15m0s and getting them cancelled mid-scrape — no
+    # batch ever got committed. 28 gives real headroom above the ~15-20m these now
+    # take, including channels that need several retries.
+    timeout-minutes: 28
     steps:
       - uses: actions/checkout@v5
 
