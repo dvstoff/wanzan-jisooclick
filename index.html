@@ -442,6 +442,16 @@
   /* the page's main .lang-switch floats right in the wide header — inside the narrow
      centered gate card that would sit awkwardly, so this one sits centered above the title */
   .gate-lang-switch { float: none; display: inline-flex; margin: 0 auto 16px; }
+  /* .gate-card button (generic, for the password-submit button) and .gate-lang-switch
+     button tie on specificity and .gate-card button is declared later, so without this
+     override every toggle button inherited the submit button's full-width solid-accent
+     look instead of the normal light/dark lang-switch pill style */
+  .gate-card .gate-lang-switch button {
+    width: auto; font-size: 12px; font-weight: 700; padding: 6px 12px;
+    background: var(--surface); color: var(--ink-dim); border-right: 1px solid var(--line);
+  }
+  .gate-card .gate-lang-switch button:last-child { border-right: none; }
+  .gate-card .gate-lang-switch button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
 </style>
 
 <div id="watermarkOverlay"></div>
