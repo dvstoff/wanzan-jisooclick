@@ -373,6 +373,7 @@
   .poll-suggest-form .icon-btn { flex: 0 0 auto; white-space: nowrap; }
   .poll-status-row { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12.5px; margin: 0 0 28px; min-height: 16px; }
   .poll-status-row .poll-result { color: var(--ink-dim); }
+  .poll-suggest-section .poll-title { flex: 0 0 auto; white-space: nowrap; }
   .ask-status.ok { color: var(--good); }
   .ask-status.err { color: #c0392b; }
   .qa-list { display: flex; flex-direction: column; gap: 10px; }
@@ -503,22 +504,15 @@
     </aside>
   </div>
 
-  <section class="poll-section" id="pollCard">
-    <div class="poll-info">
-      <p class="poll-title" data-i18n="pollTitle">🗳️ 投票：要不要加流媒体数据？</p>
-      <p class="poll-question" data-i18n="pollQuestion">是否需要我加上 Apple Music / Spotify 的流媒体销量数据？</p>
-    </div>
-    <div class="poll-buttons" id="pollButtons">
-      <button type="button" class="icon-btn" data-vote="yes" data-i18n="pollYes">需要</button>
-      <button type="button" class="icon-btn" data-vote="no" data-i18n="pollNo">不需要</button>
-    </div>
+  <div id="pollsContainer"></div>
+  <section class="poll-section poll-suggest-section">
+    <p class="poll-title" data-i18n="pollSuggestTitle">💭 有其他想法？</p>
     <form id="suggestForm" class="poll-suggest-form">
       <input type="text" id="suggestText" name="suggestion" data-i18n-placeholder="pollSuggestPlaceholder" placeholder="有什么想法尽管提，我会改进的">
       <button type="submit" class="icon-btn primary" id="suggestSubmit" data-i18n="pollSuggestSubmit">提交想法</button>
     </form>
   </section>
   <p class="poll-status-row">
-    <span class="poll-result" id="pollResult"></span>
     <span class="ask-status" id="pollSuggestStatus"></span>
   </p>
 
@@ -846,13 +840,10 @@
       askOk: "提交成功,谢谢提问！我看到后会尽快回复,回答了会出现在下面",
       askErr: "提交失败,可以稍后再试一次,或者换个方式联系我",
       askEmpty: "请先写点什么再提交",
-      pollTitle: "🗳️ 投票：要不要加流媒体数据？",
-      pollQuestion: "是否需要我加上 Apple Music / Spotify 的流媒体销量数据？",
-      pollYes: "需要",
-      pollNo: "不需要",
-      pollThanksYes: "谢谢投票！已记录你投的「需要」，我会考虑加上。",
-      pollThanksNo: "谢谢投票！已记录你投的「不需要」。",
+      pollThanksYes: "谢谢投票！已记录你的选择。",
+      pollThanksNo: "谢谢投票！已记录你的选择。",
       pollVoteErr: "投票提交失败,可以稍后再试一次",
+      pollSuggestTitle: "💭 有其他想法？",
       pollSuggestPlaceholder: "有什么想法尽管提，我会改进的",
       pollSuggestSubmit: "提交想法",
       pollSuggestSending: "提交中…",
@@ -982,13 +973,10 @@
       askOk: "Sent, thanks for asking! I'll get to it soon — the answer will show up below once I reply.",
       askErr: "Couldn't send that — try again in a bit, or reach me another way",
       askEmpty: "Write something before submitting",
-      pollTitle: "🗳️ Poll: add streaming numbers?",
-      pollQuestion: "Would you like Apple Music / Spotify streaming sales added to this site?",
-      pollYes: "Yes, add it",
-      pollNo: "No thanks",
-      pollThanksYes: "Thanks for voting! Your “yes” is recorded — I'll consider adding it.",
-      pollThanksNo: "Thanks for voting! Your “no” is recorded.",
+      pollThanksYes: "Thanks for voting! Your choice is recorded.",
+      pollThanksNo: "Thanks for voting! Your choice is recorded.",
       pollVoteErr: "Couldn't submit that vote — try again in a bit",
+      pollSuggestTitle: "💭 Other ideas?",
       pollSuggestPlaceholder: "Any suggestions? I read everything and will keep improving",
       pollSuggestSubmit: "Submit suggestion",
       pollSuggestSending: "Sending…",
@@ -1131,7 +1119,7 @@
     });
     renderNoticeBanner();
     renderQaList();
-    renderPollState();
+    renderPolls();
   }
 
   // Running changelog of user-visible fixes/changes, newest first. Add a new entry here
@@ -1139,6 +1127,11 @@
   // next time they load the page: it reappears automatically once UPDATE_LOG[0].date is
   // newer than whatever date the viewer last dismissed (tracked in their own localStorage).
   var UPDATE_LOG = [
+    {
+      date: "2026-09-02",
+      zh: "🗓️ 新增一个投票：发行当天（9/4）要不要开一个纯匿名的实时聊天室，一起等发布？不需要登录、不需要任何身份信息，消息过一天自动消失。愿意来的人多我就开，欢迎在下面投票。",
+      en: "🗓️ New poll: should I open a fully anonymous real-time chat room on release day (9/4) for everyone to wait together? No login, no identity info required, messages auto-delete after a day. I'll only open it if enough people want to join — vote below."
+    },
     {
       date: "2026-08-31",
       zh: "📢 应提问要求，新增两个团站渠道：「职业黑粉操盘手吧」和「BLACKPINK吧官博」（各含 Ktown4u+Yetimall），已计入全站总销量。下面新增了一个小投票：要不要加 Apple Music / Spotify 的流媒体销量？也欢迎在投票那里留言提任何想法，我会尽量改进。提醒：全站所有时间均为韩国时间（KST，UTC+9）。",
@@ -1174,6 +1167,31 @@
   // Set this to the real "https://formspree.io/f/xxxxxxxx" endpoint once created;
   // left blank the form just explains it isn't wired up yet instead of failing silently.
   var ASK_FORM_ENDPOINT = "https://formspree.io/f/xrpgggwd";
+
+  // ---- polls ----
+  // Data-driven so more than one can run at once — each gets its own localStorage
+  // vote-once key and its own Formspree _subject tag, keyed by id. Add new entries
+  // here; nothing else needs to change to add a poll.
+  var POLLS = [
+    {
+      id: "streaming",
+      title: "🗳️ 投票：要不要加流媒体数据？",
+      titleEn: "🗳️ Poll: add streaming numbers?",
+      question: "是否需要我加上 Apple Music / Spotify 的流媒体销量数据？",
+      questionEn: "Would you like Apple Music / Spotify streaming sales added to this site?",
+      yes: "需要", yesEn: "Yes, add it",
+      no: "不需要", noEn: "No thanks"
+    },
+    {
+      id: "chatroom",
+      title: "🗓️ 投票：要不要开发行日匿名聊天室？",
+      titleEn: "🗓️ Poll: open a release-day anonymous chat room?",
+      question: "发行当天（9/4）开一个纯匿名的实时聊天室——不需要登录、不需要任何身份信息，大家一起等发布、畅所欲言，也欢迎海外粉丝加入；消息过一天会自动消失，不会留存。我会尽量把能查到的流媒体消息分享给大家。想不想要这个功能？愿意的人多我就开，没人来就没必要做。",
+      questionEn: "On release day (9/4), open a fully anonymous real-time chat room — no login, no identity info required at all — for everyone (overseas fans welcome too) to hang out and wait for the release together; messages auto-delete after a day, nothing is kept. I'll share whatever streaming updates I can find. Would you want this? I'll only build it if enough people actually want to show up.",
+      yes: "想要，我会来", yesEn: "Yes, I'd join",
+      no: "不需要", noEn: "No thanks"
+    }
+  ];
 
   document.getElementById("askForm").addEventListener("submit", function (e) {
     e.preventDefault();
@@ -1217,12 +1235,14 @@
   // remembered in localStorage just to stop the same visitor re-clicking a dozen times,
   // not as real fraud protection. _subject tags each submission so it's easy to tell
   // votes and suggestions apart from questions in the inbox.
-  var POLL_VOTE_KEY = "jisoo_poll_streaming_vote";
-  function renderPollState() {
-    var resultEl = document.getElementById("pollResult");
-    var buttonsEl = document.getElementById("pollButtons");
+  function pollVoteKey(poll) { return "jisoo_poll_" + poll.id + "_vote"; }
+  function renderPollVoteState(poll) {
+    var section = document.querySelector('[data-poll-id="' + poll.id + '"]');
+    if (!section) return;
+    var resultEl = section.querySelector(".poll-result");
+    var buttonsEl = section.querySelector(".poll-buttons");
     var voted = null;
-    try { voted = localStorage.getItem(POLL_VOTE_KEY); } catch (e) { /* ignore */ }
+    try { voted = localStorage.getItem(pollVoteKey(poll)); } catch (e) { /* ignore */ }
     if (voted === "yes" || voted === "no") {
       buttonsEl.querySelectorAll("button").forEach(function (b) {
         b.disabled = true;
@@ -1234,31 +1254,53 @@
       resultEl.textContent = "";
     }
   }
-  document.getElementById("pollButtons").addEventListener("click", function (e) {
-    var btn = e.target.closest("button[data-vote]");
-    if (!btn || btn.disabled) return;
-    var vote = btn.getAttribute("data-vote");
-    var resultEl = document.getElementById("pollResult");
-    document.getElementById("pollButtons").querySelectorAll("button").forEach(function (b) { b.disabled = true; });
-    var fd = new FormData();
-    fd.append("poll", "Apple Music / Spotify streaming data?");
-    fd.append("vote", vote);
-    fd.append("_subject", "[投票] 流媒体数据 — " + vote);
-    fetch(ASK_FORM_ENDPOINT, { method: "POST", headers: { "Accept": "application/json" }, body: fd })
-      .then(function (res) {
-        if (res.ok) {
-          try { localStorage.setItem(POLL_VOTE_KEY, vote); } catch (e2) { /* ignore */ }
-          renderPollState();
-        } else {
-          resultEl.textContent = t("pollVoteErr");
-          document.getElementById("pollButtons").querySelectorAll("button").forEach(function (b) { b.disabled = false; });
-        }
-      }).catch(function () {
-        resultEl.textContent = t("pollVoteErr");
-        document.getElementById("pollButtons").querySelectorAll("button").forEach(function (b) { b.disabled = false; });
+  function renderPolls() {
+    var container = document.getElementById("pollsContainer");
+    if (!container) return;
+    container.innerHTML = POLLS.map(function (poll) {
+      return '<section class="poll-section" data-poll-id="' + poll.id + '">' +
+        '<div class="poll-info">' +
+          '<p class="poll-title">' + L(poll, "title") + '</p>' +
+          '<p class="poll-question">' + L(poll, "question") + '</p>' +
+        '</div>' +
+        '<div class="poll-buttons">' +
+          '<button type="button" class="icon-btn" data-vote="yes">' + L(poll, "yes") + '</button>' +
+          '<button type="button" class="icon-btn" data-vote="no">' + L(poll, "no") + '</button>' +
+        '</div>' +
+        '<p class="poll-result"></p>' +
+      '</section>';
+    }).join("");
+    POLLS.forEach(function (poll) {
+      var section = container.querySelector('[data-poll-id="' + poll.id + '"]');
+      section.querySelector(".poll-buttons").addEventListener("click", function (e) {
+        var btn = e.target.closest("button[data-vote]");
+        if (!btn || btn.disabled) return;
+        var vote = btn.getAttribute("data-vote");
+        var buttonsEl = section.querySelector(".poll-buttons");
+        var resultEl = section.querySelector(".poll-result");
+        buttonsEl.querySelectorAll("button").forEach(function (b) { b.disabled = true; });
+        var fd = new FormData();
+        fd.append("poll", poll.id);
+        fd.append("vote", vote);
+        fd.append("_subject", "[投票] " + poll.id + " — " + vote);
+        fetch(ASK_FORM_ENDPOINT, { method: "POST", headers: { "Accept": "application/json" }, body: fd })
+          .then(function (res) {
+            if (res.ok) {
+              try { localStorage.setItem(pollVoteKey(poll), vote); } catch (e2) { /* ignore */ }
+              renderPollVoteState(poll);
+            } else {
+              resultEl.textContent = t("pollVoteErr");
+              buttonsEl.querySelectorAll("button").forEach(function (b) { b.disabled = false; });
+            }
+          }).catch(function () {
+            resultEl.textContent = t("pollVoteErr");
+            buttonsEl.querySelectorAll("button").forEach(function (b) { b.disabled = false; });
+          });
       });
-  });
-  renderPollState();
+      renderPollVoteState(poll);
+    });
+  }
+  renderPolls();
 
   document.getElementById("suggestForm").addEventListener("submit", function (e) {
     e.preventDefault();
