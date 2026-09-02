@@ -112,6 +112,14 @@ const CHANNELS = [
     parse: parseYetimall,
     retry: true,
   },
+  {
+    id: "yetimall_featured",
+    platform: "other",
+    url: "https://m.yetimall.store/h5/#/goods?gid=32422",
+    itemIds: ["main"],
+    parse: parseYetimall,
+    retry: true,
+  },
 ];
 
 // CLI filter: `node scripts/scrape.js --only=ktown4u` runs just those channels.
