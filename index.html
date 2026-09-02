@@ -261,6 +261,10 @@
 
   .table-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; flex-wrap: wrap; gap: 8px;}
   .table-foot .count { font-size: 12px; color: var(--ink-mute); }
+  .table-pager { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 12px; }
+  .table-pager .page-label { font-size: 12.5px; color: var(--ink-dim); }
+  .table-pager .chipbtn:disabled { opacity: 0.4; cursor: default; }
+  .table-pager .chipbtn:disabled:hover { background: var(--surface); }
 
   /* channel tabs (grouped) */
   .tabs-group { margin-bottom: 12px; }
@@ -608,6 +612,7 @@
       <span class="count" id="siteRowCount"></span>
       <span class="count" data-i18n="tzNoteSite">时间均为本地时区（Asia/Shanghai）· <span style="color:var(--ink-mute)">浅色数字</span>=沿用上次结果,该渠道这次没重新查</span>
     </div>
+    <div class="table-pager" id="sitePager"></div>
   </section>
 
   <section>
@@ -937,6 +942,9 @@
       noRecordsInRange: "所选时间段内没有记录",
       firstRecord: "首次记录",
       recordsCountFmt: "{n} / {m} 条记录",
+      pagerPrev: "上一页",
+      pagerNext: "下一页",
+      pagerPageFmt: "第 {n} / {m} 页",
       colTime: "时间",
       colSiteTotal: "全站合计",
       colDelta: "较上批次净增",
@@ -1073,6 +1081,9 @@
       noRecordsInRange: "No records in the selected time range",
       firstRecord: "First record",
       recordsCountFmt: "{n} / {m} records",
+      pagerPrev: "Prev",
+      pagerNext: "Next",
+      pagerPageFmt: "Page {n} / {m}",
       colTime: "Time",
       colSiteTotal: "Site-wide Total",
       colDelta: "Net Increase",
@@ -1345,7 +1356,8 @@
 
   // ---- state ----
   var state = { channel: "ktown4u_echo", convention: "physical", vinyl: "exclude", preset: "all", from: null, to: null };
-  var siteState = { preset: "all", from: null, to: null };
+  var siteState = { preset: "all", from: null, to: null, page: 1 };
+  var SITE_PAGE_SIZE = 50; // rows per page in the site-wide table below — change this number to show more/fewer per page
   var siteDailyState = { selectedDay: null };
 
   function channelById(id) { return CHANNELS.filter(function (c) { return c.id === id; })[0]; }
@@ -1871,7 +1883,26 @@
       var cur = grandTotal(snap);
       deltaByTs[snap.ts] = (prev === null || cur === null) ? null : cur - prev;
     });
-    tbody.innerHTML = rows.slice().reverse().map(function (snap) {
+    var allRows = rows.slice().reverse();
+    var pageCount = Math.max(1, Math.ceil(allRows.length / SITE_PAGE_SIZE));
+    if (siteState.page > pageCount) siteState.page = pageCount;
+    if (siteState.page < 1) siteState.page = 1;
+    var pageStart = (siteState.page - 1) * SITE_PAGE_SIZE;
+    var pageRows = allRows.slice(pageStart, pageStart + SITE_PAGE_SIZE);
+    var pagerEl = document.getElementById("sitePager");
+    if (pagerEl) {
+      if (pageCount <= 1) {
+        pagerEl.innerHTML = "";
+      } else {
+        pagerEl.innerHTML =
+          '<button type="button" class="chipbtn" id="sitePagerPrev"' + (siteState.page <= 1 ? " disabled" : "") + '>‹ ' + t("pagerPrev") + '</button>' +
+          '<span class="page-label">' + t("pagerPageFmt", { n: siteState.page, m: pageCount }) + '</span>' +
+          '<button type="button" class="chipbtn" id="sitePagerNext"' + (siteState.page >= pageCount ? " disabled" : "") + '>' + t("pagerNext") + ' ›</button>';
+        document.getElementById("sitePagerPrev").addEventListener("click", function () { siteState.page--; renderSiteTable(); });
+        document.getElementById("sitePagerNext").addEventListener("click", function () { siteState.page++; renderSiteTable(); });
+      }
+    }
+    tbody.innerHTML = pageRows.map(function (snap) {
       var cells = TOTALED_CHANNELS.map(function (c) {
         var fresh = snap.freshIds.indexOf(c.id) !== -1;
         // "fresh" = actually re-checked this run (e.g. a manual single-channel update
@@ -2219,18 +2250,20 @@
   document.getElementById("exportBtn").addEventListener("click", exportChannelCsv);
 
   document.querySelectorAll("[data-site-preset]").forEach(function (btn) {
-    btn.addEventListener("click", function () { applySitePreset(btn.getAttribute("data-site-preset")); renderSiteTable(); });
+    btn.addEventListener("click", function () { applySitePreset(btn.getAttribute("data-site-preset")); siteState.page = 1; renderSiteTable(); });
   });
 
   document.getElementById("siteFromInput").addEventListener("change", function (e) {
     var d = parseKSTInput(e.target.value);
     siteState.from = d ? d.toISOString() : null;
+    siteState.page = 1;
     document.querySelectorAll("[data-site-preset]").forEach(function (b) { b.setAttribute("aria-pressed", "false"); });
     renderSiteTable();
   });
   document.getElementById("siteToInput").addEventListener("change", function (e) {
     var d = parseKSTInput(e.target.value);
     siteState.to = d ? d.toISOString() : null;
+    siteState.page = 1;
     document.querySelectorAll("[data-site-preset]").forEach(function (b) { b.setAttribute("aria-pressed", "false"); });
     renderSiteTable();
   });
