@@ -1213,9 +1213,9 @@
   // ---- ask-a-question box + curated public Q&A ----
   // Submissions go straight to a Formspree endpoint (private — only reaches the site
   // owner's inbox, nothing is auto-published) so no visitor login/account is needed.
-  // Set this to the real "https://formspree.io/f/xxxxxxxx" endpoint once created;
-  // left blank the form just explains it isn't wired up yet instead of failing silently.
-  var ASK_FORM_ENDPOINT = "https://formspree.io/f/xrpgggwd";
+  // Switched from Formspree (free tier's 50/month cap kept getting hit) to a small
+  // self-hosted endpoint on the Chatchu server — same VPS, no submission limit.
+  var ASK_FORM_ENDPOINT = "https://153-121-67-28.sslip.io/api/feedback";
 
   // ---- polls ----
   // Data-driven so more than one can run at once — each gets its own localStorage
@@ -1276,11 +1276,11 @@
         var buttonsEl = section.querySelector(".poll-buttons");
         var resultEl = section.querySelector(".poll-result");
         buttonsEl.querySelectorAll("button").forEach(function (b) { b.disabled = true; });
-        var fd = new FormData();
-        fd.append("poll", poll.id);
-        fd.append("vote", vote);
-        fd.append("_subject", "[投票] " + poll.id + " — " + vote);
-        fetch(ASK_FORM_ENDPOINT, { method: "POST", headers: { "Accept": "application/json" }, body: fd })
+        fetch(ASK_FORM_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ kind: "poll_" + poll.id, name: "", message: vote })
+        })
           .then(function (res) {
             if (res.ok) {
               try { localStorage.setItem(pollVoteKey(poll), vote); } catch (e2) { /* ignore */ }
@@ -1308,10 +1308,11 @@
     submitBtn.disabled = true;
     statusEl.textContent = t("pollSuggestSending");
     statusEl.className = "ask-status";
-    var fd = new FormData();
-    fd.append("suggestion", text);
-    fd.append("_subject", "[建议] 网站反馈");
-    fetch(ASK_FORM_ENDPOINT, { method: "POST", headers: { "Accept": "application/json" }, body: fd })
+    fetch(ASK_FORM_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ kind: "suggestion", name: "", message: text })
+    })
       .then(function (res) {
         submitBtn.disabled = false;
         if (res.ok) {
