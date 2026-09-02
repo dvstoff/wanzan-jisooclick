@@ -130,10 +130,18 @@
   .notice-banner .nb-close:hover { background: rgba(0,0,0,0.06); color: var(--ink); }
   .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--good); flex: none; }
   .chip a { color: inherit; text-decoration: none; border-bottom: 1px dotted var(--ink-mute); }
-  .chip-link { text-decoration: none; cursor: pointer; }
-  .chip-link:hover { border-color: var(--accent); color: var(--accent); }
-  .stream-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 36px; }
-  .stream-row .stream-label { font-size: 12.5px; color: var(--ink-dim); font-weight: 700; }
+  .stream-row {
+    display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 36px;
+    padding: 16px 18px; border-radius: 16px; background: var(--accent-wash); border: 1px solid var(--accent);
+  }
+  .stream-row .stream-label { font-size: 14px; color: var(--ink); font-weight: 800; }
+  .chip-link {
+    text-decoration: none; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--accent); border-color: var(--accent); color: var(--accent-ink);
+    font-size: 15px; font-weight: 700; padding: 11px 22px; border-radius: 12px;
+  }
+  .chip-link:hover { filter: brightness(1.08); }
 
   section { margin-bottom: 40px; }
   .section-label {
@@ -696,6 +704,7 @@
         <span class="count" id="rowCount"></span>
         <span class="count" data-i18n="tzNote">时间均为本地时区（Asia/Shanghai）</span>
       </div>
+      <div class="table-pager" id="channelPager"></div>
     </div>
   </section>
 
@@ -1355,7 +1364,7 @@
   }
 
   // ---- state ----
-  var state = { channel: "ktown4u_echo", convention: "physical", vinyl: "exclude", preset: "all", from: null, to: null };
+  var state = { channel: "ktown4u_echo", convention: "physical", vinyl: "exclude", preset: "all", from: null, to: null, page: 1 };
   var siteState = { preset: "all", from: null, to: null, page: 1 };
   var SITE_PAGE_SIZE = 50; // rows per page in the site-wide table below — change this number to show more/fewer per page
   var siteDailyState = { selectedDay: null };
@@ -1985,7 +1994,7 @@
     document.querySelectorAll("[data-channel]").forEach(function (btn) {
       btn.addEventListener("click", function () {
         state.channel = btn.getAttribute("data-channel");
-        state.preset = "all"; state.from = null; state.to = null;
+        state.preset = "all"; state.from = null; state.to = null; state.page = 1;
         renderChannelView();
       });
     });
@@ -2095,7 +2104,26 @@
       var cur = channelTotal(channel, s.counts);
       deltaByTs[s.ts] = (prev === null || cur === null) ? null : cur - prev;
     });
-    tbody.innerHTML = rows.slice().reverse().map(function (s) {
+    var allRowsRev = rows.slice().reverse();
+    var pageCount = Math.max(1, Math.ceil(allRowsRev.length / SITE_PAGE_SIZE));
+    if (state.page > pageCount) state.page = pageCount;
+    if (state.page < 1) state.page = 1;
+    var pageStart = (state.page - 1) * SITE_PAGE_SIZE;
+    var pageRows = allRowsRev.slice(pageStart, pageStart + SITE_PAGE_SIZE);
+    var pagerEl = document.getElementById("channelPager");
+    if (pagerEl) {
+      if (pageCount <= 1) {
+        pagerEl.innerHTML = "";
+      } else {
+        pagerEl.innerHTML =
+          '<button type="button" class="chipbtn" id="channelPagerPrev"' + (state.page <= 1 ? " disabled" : "") + '>‹ ' + t("pagerPrev") + '</button>' +
+          '<span class="page-label">' + t("pagerPageFmt", { n: state.page, m: pageCount }) + '</span>' +
+          '<button type="button" class="chipbtn" id="channelPagerNext"' + (state.page >= pageCount ? " disabled" : "") + '>' + t("pagerNext") + ' ›</button>';
+        document.getElementById("channelPagerPrev").addEventListener("click", function () { state.page--; renderChannelTable(); });
+        document.getElementById("channelPagerNext").addEventListener("click", function () { state.page++; renderChannelTable(); });
+      }
+    }
+    tbody.innerHTML = pageRows.map(function (s) {
       var total = channelTotal(channel, s.counts);
       var cells = channel.items.map(function (it) { return '<td class="mono">' + fmt(s.counts[it.id] || 0) + "</td>"; }).join("");
       var d = deltaByTs[s.ts];
@@ -2233,17 +2261,19 @@
     });
   });
   document.querySelectorAll("[data-preset]").forEach(function (btn) {
-    btn.addEventListener("click", function () { applyPreset(btn.getAttribute("data-preset")); renderChannelTable(); });
+    btn.addEventListener("click", function () { applyPreset(btn.getAttribute("data-preset")); state.page = 1; renderChannelTable(); });
   });
   document.getElementById("fromInput").addEventListener("change", function (e) {
     var d = parseKSTInput(e.target.value);
     state.from = d ? d.toISOString() : null;
+    state.page = 1;
     document.querySelectorAll("[data-preset]").forEach(function (b) { b.setAttribute("aria-pressed", "false"); });
     renderChannelTable();
   });
   document.getElementById("toInput").addEventListener("change", function (e) {
     var d = parseKSTInput(e.target.value);
     state.to = d ? d.toISOString() : null;
+    state.page = 1;
     document.querySelectorAll("[data-preset]").forEach(function (b) { b.setAttribute("aria-pressed", "false"); });
     renderChannelTable();
   });
