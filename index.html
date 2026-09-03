@@ -164,6 +164,9 @@
     box-shadow: 0 4px 14px rgba(0,0,0,0.2);
   }
   .chatroom-cta .cta-btn:hover { filter: brightness(1.05); }
+  .chatroom-cta .cta-links { display: flex; flex-direction: column; gap: 8px; align-items: stretch; flex-shrink: 0; }
+  .chatroom-cta .cta-links .cta-btn { justify-content: center; }
+  .chatroom-cta .cta-note { margin: 2px 0 0; font-size: 11.5px; text-align: center; color: rgba(255,255,255,0.85); }
 
   section { margin-bottom: 40px; }
   .section-label {
@@ -522,7 +525,11 @@
       <h2 data-i18n="chatroomTitle">别等 9/4 才认识大家——现在就进来！</h2>
       <p data-i18n="chatroomBody">发行当天谁都不知道会有多少人一起冲，与其到时候手忙脚乱，不如现在就进来认识大家、一起做准备。人越多，声势越大，我们也能更好地为 JISOO 一起努力！</p>
     </div>
-    <a class="cta-btn" href="https://153-121-67-28.sslip.io/" target="_blank" rel="noopener" data-i18n="chatroomBtn">💬 进入聊天室</a>
+    <div class="cta-links">
+      <a class="cta-btn" href="https://clickchatchu.duckdns.org/" target="_blank" rel="noopener" data-i18n="chatroomBtnGlobal">🌏 海外用户点这里</a>
+      <a class="cta-btn" href="https://153-121-67-28.sslip.io/" target="_blank" rel="noopener" data-i18n="chatroomBtnCn">🇨🇳 中国用户点这里</a>
+      <p class="cta-note" data-i18n="chatroomNote">两个链接通向同一个聊天室，请放心使用～</p>
+    </div>
   </div>
 
   <div class="lang-switch">
@@ -931,7 +938,9 @@
       chatroomEyebrow: "💬 聊天室提前开放",
       chatroomTitle: "别等 9/4 才认识大家——现在就进来！",
       chatroomBody: "发行当天谁都不知道会有多少人一起冲，与其到时候手忙脚乱，不如现在就进来认识大家、一起做准备。人越多，声势越大，我们也能更好地为 JISOO 一起努力！",
-      chatroomBtn: "💬 进入聊天室",
+      chatroomBtnGlobal: "🌏 海外用户点这里",
+      chatroomBtnCn: "🇨🇳 中国用户点这里",
+      chatroomNote: "两个链接通向同一个聊天室，请放心使用～",
       streamLinksLabel: "🎧 一起刷流媒：",
       streamSpotifyLink: "Spotify 歌单",
       streamStationheadLink: "Stationhead 挂播间",
@@ -1076,7 +1085,9 @@
       chatroomEyebrow: "💬 Chatroom open early",
       chatroomTitle: "Don't wait until 9/4 — join now",
       chatroomBody: "Nobody knows how many of us will show up on release day. Getting everyone here and prepared beforehand means we can hit the ground running together — the more of us, the stronger our push for JISOO.",
-      chatroomBtn: "💬 Join the chatroom",
+      chatroomBtnGlobal: "🌏 Outside China — click here",
+      chatroomBtnCn: "🇨🇳 In China — click here",
+      chatroomNote: "Both links lead to the same chatroom — use whichever works for you.",
       streamLinksLabel: "🎧 Stream together:",
       streamSpotifyLink: "Spotify Playlist",
       streamStationheadLink: "Stationhead Room",
@@ -1271,7 +1282,28 @@
   // owner's inbox, nothing is auto-published) so no visitor login/account is needed.
   // Switched from Formspree (free tier's 50/month cap kept getting hit) to a small
   // self-hosted endpoint on the Chatchu server — same VPS, no submission limit.
-  var ASK_FORM_ENDPOINT = "https://153-121-67-28.sslip.io/api/feedback";
+  // 有的访客连不上IP域名，有的连不上duckdns域名（网络环境不同）——两个都试一遍，
+  // 先试第一个失败了自动换第二个，谁都不用管，反馈照样能提交上去
+  var ASK_FORM_ENDPOINTS = [
+    "https://153-121-67-28.sslip.io/api/feedback",
+    "https://clickchatchu.duckdns.org/api/feedback"
+  ];
+  function submitFeedback(payload) {
+    function tryEndpoint(i) {
+      if (i >= ASK_FORM_ENDPOINTS.length) return Promise.reject(new Error("all endpoints failed"));
+      return fetch(ASK_FORM_ENDPOINTS[i], {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      }).then(function (res) {
+        if (!res.ok) throw new Error("bad status");
+        return res;
+      }).catch(function () {
+        return tryEndpoint(i + 1);
+      });
+    }
+    return tryEndpoint(0);
+  }
 
   // ---- polls ----
   // Data-driven so more than one can run at once — each gets its own localStorage
@@ -1332,19 +1364,10 @@
         var buttonsEl = section.querySelector(".poll-buttons");
         var resultEl = section.querySelector(".poll-result");
         buttonsEl.querySelectorAll("button").forEach(function (b) { b.disabled = true; });
-        fetch(ASK_FORM_ENDPOINT, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ kind: "poll_" + poll.id, name: "", message: vote })
-        })
-          .then(function (res) {
-            if (res.ok) {
-              try { localStorage.setItem(pollVoteKey(poll), vote); } catch (e2) { /* ignore */ }
-              renderPollVoteState(poll);
-            } else {
-              resultEl.textContent = t("pollVoteErr");
-              buttonsEl.querySelectorAll("button").forEach(function (b) { b.disabled = false; });
-            }
+        submitFeedback({ kind: "poll_" + poll.id, name: "", message: vote })
+          .then(function () {
+            try { localStorage.setItem(pollVoteKey(poll), vote); } catch (e2) { /* ignore */ }
+            renderPollVoteState(poll);
           }).catch(function () {
             resultEl.textContent = t("pollVoteErr");
             buttonsEl.querySelectorAll("button").forEach(function (b) { b.disabled = false; });
@@ -1364,21 +1387,12 @@
     submitBtn.disabled = true;
     statusEl.textContent = t("pollSuggestSending");
     statusEl.className = "ask-status";
-    fetch(ASK_FORM_ENDPOINT, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ kind: "suggestion", name: "", message: text })
-    })
-      .then(function (res) {
+    submitFeedback({ kind: "suggestion", name: "", message: text })
+      .then(function () {
         submitBtn.disabled = false;
-        if (res.ok) {
-          statusEl.textContent = t("pollSuggestOk");
-          statusEl.className = "ask-status ok";
-          document.getElementById("suggestForm").reset();
-        } else {
-          statusEl.textContent = t("pollSuggestErr");
-          statusEl.className = "ask-status err";
-        }
+        statusEl.textContent = t("pollSuggestOk");
+        statusEl.className = "ask-status ok";
+        document.getElementById("suggestForm").reset();
       }).catch(function () {
         submitBtn.disabled = false;
         statusEl.textContent = t("pollSuggestErr");
