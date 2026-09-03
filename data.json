@@ -7821,6 +7821,55 @@
           "main": 9507
         }
       }
+    },
+    {
+      "ts": "2026-09-03T10:15:00.187Z",
+      "values": {
+        "ktown4u_echo": {
+          "set2cd": 12756,
+          "photobook": 8121,
+          "nfc": 11028,
+          "vinyl": 1902
+        },
+        "ktown4u_stardust": {
+          "set2cd": 3691,
+          "vinyl": 590,
+          "nfc": 3342,
+          "photobook": 2571
+        },
+        "yetimall_echo": {
+          "main": 14976
+        },
+        "yetimall_stardust": {
+          "main": 2563
+        },
+        "ktown4u_jp": {
+          "photobook": 85,
+          "nfc": 98,
+          "vinyl": 30
+        },
+        "ktown4u_heifen": {
+          "set2cd": 318,
+          "vinyl": 68,
+          "nfc": 530,
+          "photobook": 524
+        },
+        "yetimall_heifen": {
+          "main": 590
+        },
+        "ktown4u_bp": {
+          "set2cd": 493,
+          "photobook": 588,
+          "nfc": 367,
+          "vinyl": 92
+        },
+        "yetimall_bp": {
+          "main": 290
+        },
+        "yetimall_featured": {
+          "main": 9507
+        }
+      }
     }
   ]
 }
