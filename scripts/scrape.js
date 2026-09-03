@@ -21,7 +21,8 @@ const CHANNELS = [
     id: "ktown4u_echo",
     platform: "ktown4u",
     url: "https://cn.ktown4u.com/eventinfo?eve_no=44509156&biz_no=599",
-    itemIds: ["set2cd", "photobook", "nfc", "vinyl"],
+    // set2cd_subsidy = 同一个2CD套装的"补贴专"变体（限量1500套），只在这个站子的页面上见过
+    itemIds: ["set2cd", "set2cd_subsidy", "photobook", "nfc", "vinyl"],
     parse: parseKtown4uChina,
     countPattern: /售销记录/,
     scrollToLoad: true,
@@ -130,31 +131,38 @@ const ONLY_PLATFORM = onlyArg ? onlyArg.split("=")[1] : null;
 
 // Ktown4u China: used to just take the Nth "售销记录 N" match in document order and
 // assign it to the Nth itemId — worked until Ktown4u started listing extra variants
-// alongside the 4 real ones (a discounted "补贴专" tier, a "拆卡专" card-pull version,
-// "定金-补款" deposit/final-payment splits), each with its own "售销记录" counter. Those
-// extra counters shifted every position by one, silently mislabeling every item's count
-// (caught 2026-09-03 ~13:00 KST — the site's total dropped ~22k because ktown4u_echo's
-// set2cd count got replaced by an unrelated variant's much smaller number).
-// Fixed by anchoring on the "[全款 裸专]" (full-payment, bare-album) tag that only the
-// 4 real listings carry, plus a keyword unique to each one, then reading the very next
-// "售销记录" after that — order-independent, and immune to extra variants being
-// inserted anywhere on the page.
-const KTOWN4U_ITEM_KEYWORDS = {
-  set2cd: "2CD 套装",
+// alongside the original 4 (a "拆卡专" card-pull version and "定金-补款" deposit/final-
+// payment splits — still untracked/ignored — plus a discounted "补贴专" 2CD tier, which
+// turned out to be real sales worth tracking too, see set2cd_subsidy below). Every extra
+// counter shifts everything after it by one position, silently mislabeling every item's
+// count (caught 2026-09-03 ~13:00 KST — the site's total dropped ~22k because
+// ktown4u_echo's set2cd count got replaced by the then-untracked 补贴专 variant's much
+// smaller number).
+// Fixed by anchoring each item on its own listing tag ("[全款 裸专]" for the 4 original
+// ones, "[全款 补贴...限量...套]" for the subsidized 2CD) plus a keyword unique to it,
+// then reading the very next "售销记录" after that — order-independent, and immune to
+// further extra variants being inserted anywhere on the page.
+// Each real item needs its own tag: "[全款 裸专]" (full-payment, bare-album) covers the
+// 4 original listings, but a 5th one showed up 2026-09-03 — the same 2CD bundle again,
+// this time under a "[全款 补贴10r 限量1500套]" (subsidized, 1,500-set limit) tag. It
+// shares set2cd's "2CD 套装" keyword, so it needs a tag of its own to tell them apart.
+const KTOWN4U_ITEM_ANCHORS = {
+  set2cd:         { tag: "\\[全款\\s*裸专\\]", keyword: "2CD 套装" },
+  set2cd_subsidy: { tag: "\\[全款\\s*补贴\\d+r?\\s*限量\\d+套\\]", keyword: "2CD 套装" },
   // the "] " prefix matters: the 2CD combo's own name also contains the bare phrases
   // "PHOTOBOOK VER." / "BABY BEAR NFC VER." (as part of "...NFC VER.+PHOTOBOOK VER.)"),
   // so without it those keywords would match inside the 2CD card instead of skipping past it
-  photobook: "] PHOTOBOOK VER.",
-  nfc: "] CLICK BABY BEAR NFC VER.",
-  vinyl: "Vinyl Ver.",
+  photobook: { tag: "\\[全款\\s*裸专\\]", keyword: "] PHOTOBOOK VER." },
+  nfc:       { tag: "\\[全款\\s*裸专\\]", keyword: "] CLICK BABY BEAR NFC VER." },
+  vinyl:     { tag: "\\[全款\\s*裸专\\]", keyword: "Vinyl Ver." },
 };
 function parseKtown4uChina(text, itemIds) {
   const out = {};
   itemIds.forEach((id) => {
-    const kw = KTOWN4U_ITEM_KEYWORDS[id];
-    if (!kw) { out[id] = null; return; }
-    const kwEsc = kw.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const cardRe = new RegExp("\\[全款\\s*裸专\\][\\s\\S]{0,200}?" + kwEsc + "[\\s\\S]{0,200}?售销记录\\s*([\\d,]+)", "i");
+    const anchor = KTOWN4U_ITEM_ANCHORS[id];
+    if (!anchor) { out[id] = null; return; }
+    const kwEsc = anchor.keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const cardRe = new RegExp(anchor.tag + "[\\s\\S]{0,200}?" + kwEsc + "[\\s\\S]{0,200}?售销记录\\s*([\\d,]+)", "i");
     const m = text.match(cardRe);
     out[id] = m ? parseInt(m[1].replace(/,/g, ""), 10) : null;
   });
