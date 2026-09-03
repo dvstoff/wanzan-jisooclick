@@ -143,6 +143,28 @@
   }
   .chip-link:hover { filter: brightness(1.08); }
 
+  .chatroom-cta {
+    display: flex; flex-wrap: wrap; gap: 18px; align-items: center; justify-content: space-between;
+    margin-bottom: 28px; padding: 22px 24px; border-radius: 18px;
+    background: linear-gradient(135deg, var(--accent), #6a4fff);
+    box-shadow: var(--shadow);
+  }
+  .chatroom-cta .cta-text { flex: 1; min-width: 220px; color: #fff; }
+  .chatroom-cta .cta-eyebrow {
+    font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+    color: rgba(255,255,255,0.85); margin: 0 0 6px;
+  }
+  .chatroom-cta h2 { margin: 0 0 8px; font-size: 20px; color: #fff; }
+  .chatroom-cta p { margin: 0; font-size: 13.5px; line-height: 1.55; color: rgba(255,255,255,0.92); max-width: 60ch; }
+  .chatroom-cta .cta-btn {
+    text-decoration: none; cursor: pointer; flex-shrink: 0;
+    display: inline-flex; align-items: center; gap: 8px;
+    background: #fff; color: #6a1f43;
+    font-size: 15px; font-weight: 800; padding: 13px 26px; border-radius: 999px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+  }
+  .chatroom-cta .cta-btn:hover { filter: brightness(1.05); }
+
   section { margin-bottom: 40px; }
   .section-label {
     font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
@@ -493,6 +515,15 @@
 <div class="wrap">
 
   <div class="notice-banner" id="noticeBanner"></div>
+
+  <div class="chatroom-cta">
+    <div class="cta-text">
+      <p class="cta-eyebrow" data-i18n="chatroomEyebrow">💬 聊天室提前开放</p>
+      <h2 data-i18n="chatroomTitle">别等 9/4 才认识大家——现在就进来！</h2>
+      <p data-i18n="chatroomBody">发行当天谁都不知道会有多少人一起冲，与其到时候手忙脚乱，不如现在就进来认识大家、一起做准备。人越多，声势越大，我们也能更好地为 JISOO 一起努力！</p>
+    </div>
+    <a class="cta-btn" href="https://153-121-67-28.sslip.io/" target="_blank" rel="noopener" data-i18n="chatroomBtn">💬 进入聊天室</a>
+  </div>
 
   <div class="lang-switch">
     <button type="button" data-lang="zh" aria-pressed="true">中文</button>
@@ -897,6 +928,10 @@
       chipRelease: "发行日 <b>2026-09-04</b> · <b id=\"dday\">—</b>",
       chipChannels: "已接入渠道 <b id=\"channelCount\">—</b>",
       chipBatches: "已记录批次 <b id=\"batchCount\">—</b>",
+      chatroomEyebrow: "💬 聊天室提前开放",
+      chatroomTitle: "别等 9/4 才认识大家——现在就进来！",
+      chatroomBody: "发行当天谁都不知道会有多少人一起冲，与其到时候手忙脚乱，不如现在就进来认识大家、一起做准备。人越多，声势越大，我们也能更好地为 JISOO 一起努力！",
+      chatroomBtn: "💬 进入聊天室",
       streamLinksLabel: "🎧 一起刷流媒：",
       streamSpotifyLink: "Spotify 歌单",
       streamStationheadLink: "Stationhead 挂播间",
@@ -1038,6 +1073,10 @@
       chipRelease: "Release <b>2026-09-04</b> · <b id=\"dday\">—</b>",
       chipChannels: "Channels tracked <b id=\"channelCount\">—</b>",
       chipBatches: "Batches recorded <b id=\"batchCount\">—</b>",
+      chatroomEyebrow: "💬 Chatroom open early",
+      chatroomTitle: "Don't wait until 9/4 — join now",
+      chatroomBody: "Nobody knows how many of us will show up on release day. Getting everyone here and prepared beforehand means we can hit the ground running together — the more of us, the stronger our push for JISOO.",
+      chatroomBtn: "💬 Join the chatroom",
       streamLinksLabel: "🎧 Stream together:",
       streamSpotifyLink: "Spotify Playlist",
       streamStationheadLink: "Stationhead Room",
@@ -1185,6 +1224,11 @@
   // next time they load the page: it reappears automatically once UPDATE_LOG[0].date is
   // newer than whatever date the viewer last dismissed (tracked in their own localStorage).
   var UPDATE_LOG = [
+    {
+      date: "2026-09-03",
+      zh: "💬 聊天室提前开放了！不用等到9/4，现在就能进——链接在页面最上面那张卡片里，详情看下面的「问答」～",
+      en: "💬 The chatroom is open early! No need to wait for 9/4 — join now via the card near the top of the page. See the Q&A below for details~"
+    },
     {
       date: "2026-09-02",
       zh: "🗳️ 投票已截止，谢谢大家参与投票！根据结果，流媒体数据和聊天室都已经在推进了——聊天室会在发行日（9/4）正式开放，详情看下面的「问答」～",
@@ -1346,6 +1390,11 @@
   // matching answer; raw submissions from the form above never get auto-published.
   // Add new entries at the front (newest first) as fans ask and I answer.
   var QA_LOG = [
+    {
+      date: "2026-09-03",
+      a: "聊天室提前对大家开放了，链接就在页面最上面那个卡片里。9/4发行当天谁也不知道会来多少人，所以想让大家先进来认识一下、一起准备准备，到时候人多也不会手忙脚乱～<br><br>补充说明一下规则：聊天室是纯匿名的，不需要注册登录，也不会收集任何个人信息，请大家放心使用；同时也请大家互相尊重，禁止人身攻击。目前有两位管理员在维护秩序——我，和另一位秀芬。如果看到可疑的人或者不合适的发言，麻烦点消息下面的「举报」，我们看到会尽快处理。有什么想法或建议，也欢迎在聊天室里的「建议反馈」板块直接说～",
+      aEn: "The chatroom is open early now — the link is in the card at the top of the page. Nobody knows how many people will show up on release day (9/4), so I wanted everyone to get in, meet each other, and get ready together beforehand, so things go smoothly when the day comes.<br><br>A few notes on how it works: it's fully anonymous, no sign-up or login needed, and we don't collect any personal info — use it freely. Please also be respectful of each other; personal attacks aren't allowed. Two admins keep things in order — me, and another admin, Xiufen (秀芬). If you spot anyone suspicious or see inappropriate messages, please hit the 「Report」 button under the message and we'll handle it promptly. Got ideas or suggestions? There's a 「Suggestions & Feedback」 board right in the chatroom for that~"
+    },
     {
       date: "2026-09-03",
       a: "有朋友问能不能把京东的销量也加上——京东目前没有像其他渠道那样可以直接抓取的公开数据接口，没法自动统计，只能我人工去查、手动加进来。现在总销量旁边先加了「+ 京东（之后手动上传）」的标注，等我拿到确切数字会更新上去，到时候就会自动并入总销量。",
