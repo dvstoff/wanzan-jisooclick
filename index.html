@@ -128,6 +128,15 @@
     color: var(--ink-mute); font-size: 16px; line-height: 1; padding: 2px 4px; border-radius: 6px;
   }
   .notice-banner .nb-close:hover { background: rgba(0,0,0,0.06); color: var(--ink); }
+  /* 重要公告：跟平时那种"加了个新渠道"的小提示不一样，做成实心底色、更大字号，一眼就能看出这条不一样 */
+  .notice-banner.critical {
+    border-width: 2px; padding: 18px 20px; font-size: 15px; line-height: 1.6;
+    background: var(--accent); color: var(--accent-ink); box-shadow: var(--shadow);
+  }
+  .notice-banner.critical .nb-icon { font-size: 24px; }
+  .notice-banner.critical .nb-date { color: var(--accent-ink); text-decoration: underline; text-underline-offset: 3px; }
+  .notice-banner.critical .nb-close { color: var(--accent-ink); }
+  .notice-banner.critical .nb-close:hover { background: rgba(255,255,255,0.22); color: var(--accent-ink); }
   .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--good); flex: none; }
   .chip a { color: inherit; text-decoration: none; border-bottom: 1px dotted var(--ink-mute); }
   .stream-row {
@@ -1241,8 +1250,9 @@
   var UPDATE_LOG = [
     {
       date: "2026-09-04",
-      zh: "📢 因为看到一些恶意评论，让我精神上很痛苦，网站往后不会再更新数据了。聊天室会在 9/6 24:00（韩国时间 KST）自动关闭，想保留记录的朋友请自行截图保存。谢谢大家这段时间的支持与陪伴。",
-      en: "📢 Due to some hurtful comments that have caused me real emotional pain, this site will no longer be updated going forward. The chatroom will close automatically at 9/6 24:00 KST — if you'd like to keep anything from it, please save a screenshot before then. Thank you all for your support."
+      important: true,
+      zh: "因为看到一些恶意评论，让我精神上很痛苦，网站往后不会再更新数据了。聊天室会在 9/6 24:00（韩国时间 KST）自动关闭，想保留记录的朋友请自行截图保存。谢谢大家这段时间的支持与陪伴。",
+      en: "Due to some hurtful comments that have caused me real emotional pain, this site will no longer be updated going forward. The chatroom will close automatically at 9/6 24:00 KST — if you'd like to keep anything from it, please save a screenshot before then. Thank you all for your support."
     },
     {
       date: "2026-09-03",
@@ -1273,9 +1283,10 @@
     try { dismissed = localStorage.getItem("jisoo_notice_dismissed"); } catch (e) { /* private browsing etc. */ }
     if (dismissed === latest.date) { el.style.display = "none"; return; }
     el.style.display = "flex";
+    el.classList.toggle("critical", !!latest.important);
     var img = LANG === "en" ? latest.imgEn : latest.img;
     el.innerHTML =
-      '<div class="nb-icon">🔔</div>' +
+      '<div class="nb-icon">' + (latest.important ? "📢" : "🔔") + '</div>' +
       '<div class="nb-body"><span class="nb-date">' + latest.date + '</span>' + (LANG === "en" ? latest.en : latest.zh) +
         (img ? '<img class="nb-img" src="' + img + '" alt="Chatchu">' : '') +
       '</div>' +
