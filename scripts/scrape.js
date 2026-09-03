@@ -128,12 +128,37 @@ const CHANNELS = [
 const onlyArg = process.argv.find((a) => a.startsWith("--only="));
 const ONLY_PLATFORM = onlyArg ? onlyArg.split("=")[1] : null;
 
-// Ktown4u China: item cards read "...\nRMB123.00\n售销记录 1,234" in document order,
-// matching each channel's declared itemIds order (2CD/Vinyl/NFC/Photobook order
-// differs between the two China group-buy pages, hence itemIds per channel above).
+// Ktown4u China: used to just take the Nth "售销记录 N" match in document order and
+// assign it to the Nth itemId — worked until Ktown4u started listing extra variants
+// alongside the 4 real ones (a discounted "补贴专" tier, a "拆卡专" card-pull version,
+// "定金-补款" deposit/final-payment splits), each with its own "售销记录" counter. Those
+// extra counters shifted every position by one, silently mislabeling every item's count
+// (caught 2026-09-03 ~13:00 KST — the site's total dropped ~22k because ktown4u_echo's
+// set2cd count got replaced by an unrelated variant's much smaller number).
+// Fixed by anchoring on the "[全款 裸专]" (full-payment, bare-album) tag that only the
+// 4 real listings carry, plus a keyword unique to each one, then reading the very next
+// "售销记录" after that — order-independent, and immune to extra variants being
+// inserted anywhere on the page.
+const KTOWN4U_ITEM_KEYWORDS = {
+  set2cd: "2CD 套装",
+  // the "] " prefix matters: the 2CD combo's own name also contains the bare phrases
+  // "PHOTOBOOK VER." / "BABY BEAR NFC VER." (as part of "...NFC VER.+PHOTOBOOK VER.)"),
+  // so without it those keywords would match inside the 2CD card instead of skipping past it
+  photobook: "] PHOTOBOOK VER.",
+  nfc: "] CLICK BABY BEAR NFC VER.",
+  vinyl: "Vinyl Ver.",
+};
 function parseKtown4uChina(text, itemIds) {
-  const matches = [...text.matchAll(/售销记录\s*([\d,]+)/g)].map((m) => parseInt(m[1].replace(/,/g, ""), 10));
-  return matchInOrder(itemIds, matches);
+  const out = {};
+  itemIds.forEach((id) => {
+    const kw = KTOWN4U_ITEM_KEYWORDS[id];
+    if (!kw) { out[id] = null; return; }
+    const kwEsc = kw.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const cardRe = new RegExp("\\[全款\\s*裸专\\][\\s\\S]{0,200}?" + kwEsc + "[\\s\\S]{0,200}?售销记录\\s*([\\d,]+)", "i");
+    const m = text.match(cardRe);
+    out[id] = m ? parseInt(m[1].replace(/,/g, ""), 10) : null;
+  });
+  return out;
 }
 
 // Ktown4u Japan: same idea, label is "注文履歴".
