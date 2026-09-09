@@ -10378,6 +10378,36 @@
           "vinyl": 104
         }
       }
+    },
+    {
+      "ts": "2026-09-09T15:06:05.316Z",
+      "values": {
+        "ktown4u_echo": {
+          "set2cd": 12932,
+          "set2cd_subsidy": 1437,
+          "photobook": 8516,
+          "nfc": 11519,
+          "vinyl": 2031
+        },
+        "ktown4u_stardust": {
+          "set2cd": 3785,
+          "vinyl": 640,
+          "nfc": 3511,
+          "photobook": 2705
+        },
+        "ktown4u_heifen": {
+          "set2cd": 345,
+          "vinyl": 76,
+          "nfc": 559,
+          "photobook": 666
+        },
+        "ktown4u_bp": {
+          "set2cd": 503,
+          "photobook": 607,
+          "nfc": 399,
+          "vinyl": 104
+        }
+      }
     }
   ]
 }
